@@ -1,1 +1,1 @@
-﻿package uet.edu.net.booking_service.module.auth.api;
+package uet.edu.net.booking_service.module.auth.api;

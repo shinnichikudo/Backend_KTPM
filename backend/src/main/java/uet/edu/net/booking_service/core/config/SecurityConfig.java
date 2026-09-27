@@ -1,1 +1,1 @@
-﻿package uet.edu.net.booking_service.core.config;
+package uet.edu.net.booking_service.core.config;
