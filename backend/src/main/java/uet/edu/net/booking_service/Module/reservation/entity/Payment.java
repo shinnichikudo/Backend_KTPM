@@ -15,7 +15,7 @@ public class Payment {
 
     @Column(name = "booking_id", nullable = false)
     private Long bookingId;
-
+    
     @Column(nullable = false)
     private BigDecimal amount;
 
