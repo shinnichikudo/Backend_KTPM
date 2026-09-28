@@ -14,10 +14,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Cấu hình bảo mật trung tâm của ứng dụng.
+ * Định nghĩa filter chain, password encoder, và authentication manager.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // Filter kiểm tra JWT trong mỗi request — được gắn vào chain bên dưới
     private final JwtAuthFilter jwtAuthFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
