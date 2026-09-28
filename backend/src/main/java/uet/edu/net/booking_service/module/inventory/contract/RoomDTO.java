@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public class RoomDTO {
     private Long id;
     private String roomNumber;
+    private String roomType;
     private BigDecimal basePrice;
     private int capacity;
     private String status;

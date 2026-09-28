@@ -7,6 +7,8 @@ public enum ErrorCode {
     WEAK_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa và số"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không đúng"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"),
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phòng đang hoạt động"),
+    ROOM_NOT_AVAILABLE(HttpStatus.CONFLICT, "Phòng không còn trống trong khoảng ngày yêu cầu"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
 
     private final HttpStatus httpStatus;
