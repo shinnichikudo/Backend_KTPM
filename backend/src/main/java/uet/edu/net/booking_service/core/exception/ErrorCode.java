@@ -3,6 +3,8 @@ package uet.edu.net.booking_service.core.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ErrorCode {
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Yeu cau dang nhap"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Request body khong hop le"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "Email đã được sử dụng"),
     WEAK_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa và số"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không đúng"),

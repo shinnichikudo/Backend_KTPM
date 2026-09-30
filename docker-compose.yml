@@ -4,6 +4,8 @@
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME:-booking_db}
+      MYSQL_USER: booking_app
+      MYSQL_PASSWORD: ${APP_DB_PASSWORD}
     ports:
       - "3308:3306"
     volumes:

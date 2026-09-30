@@ -49,7 +49,7 @@ public class AdminSeeder implements CommandLineRunner {
 
         UserProfile admin = new UserProfile(
                 null, normalizedEmail, passwordEncoder.encode(adminPassword),
-                "Admin", "", "ADMIN", null, null);
+                "Admin", "0000000000", "ADMIN", null, null);
         userRepository.save(admin);
         log.info("AdminSeeder: tai khoan ADMIN {} da duoc tao.", normalizedEmail);
     }
