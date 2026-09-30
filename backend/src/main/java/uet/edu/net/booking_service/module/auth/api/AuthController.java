@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import uet.edu.net.booking_service.module.auth.api.dto.LoginRequest;
 import uet.edu.net.booking_service.module.auth.api.dto.LoginResponse;
 import uet.edu.net.booking_service.module.auth.api.dto.RegisterRequest;
@@ -16,6 +17,7 @@ import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 
 @RestController
 @RequestMapping("/api/auth")
+@SecurityRequirements
 public class AuthController {
 
     private final AuthService authService;

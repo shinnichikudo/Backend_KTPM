@@ -1,6 +1,7 @@
 package uet.edu.net.booking_service.module.auth.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import uet.edu.net.booking_service.module.auth.service.UserService;
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "Hồ sơ và mật khẩu người dùng")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
     private final UserService userService;
