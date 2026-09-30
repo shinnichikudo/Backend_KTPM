@@ -26,6 +26,8 @@
       SPRING_DATASOURCE_USERNAME: booking_app
       SPRING_DATASOURCE_PASSWORD: ${APP_DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:-booking-service-secret-key-change-in-prod-2026}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

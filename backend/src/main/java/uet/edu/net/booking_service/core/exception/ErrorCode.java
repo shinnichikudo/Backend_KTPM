@@ -9,7 +9,8 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"),
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phòng đang hoạt động"),
     ROOM_NOT_AVAILABLE(HttpStatus.CONFLICT, "Phòng không còn trống trong khoảng ngày yêu cầu"),
-    FORBIDDEN(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện thao tác này"),
+    WRONG_OLD_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại không đúng");
 
     private final HttpStatus httpStatus;
     private final String message;
