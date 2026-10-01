@@ -1,15 +1,4 @@
-package uet.edu.net.booking_service.Module.auth.contract;
+package uet.edu.net.booking_service.module.auth.contract;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO {
-    private Long id;
-    private String email;
-    private String fullName;
-    private String role;
+public record UserDTO(Long id, String email, String fullName, String role) {
 }

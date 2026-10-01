@@ -1,11 +1,12 @@
-package uet.edu.net.booking_service.Module.auth.contract;
+package uet.edu.net.booking_service.module.auth.contract;
 
 public interface AuthServiceContract {
     /**
-     * Lấy thông tin tài khoản an toàn qua DTO.
-     * @param userId Mã định danh của người dùng
+     * Tìm tài khoản theo email lấy từ JWT principal.
+     * 
+     * @param userId Email của người dùng
      * @return UserDTO
-     * @throws RuntimeException nếu ID không tồn tại
+     * @throws uet.edu.net.booking_service.core.exception.AppException nếu không tồn tại
      */
-    UserDTO getUserById(Long userId);
+    UserDTO getUserByEmail(Long userId);
 }

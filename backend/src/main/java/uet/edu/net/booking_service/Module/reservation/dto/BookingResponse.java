@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.dto;
+package uet.edu.net.booking_service.module.reservation.dto;
 
 import lombok.Getter;
 import lombok.Setter;

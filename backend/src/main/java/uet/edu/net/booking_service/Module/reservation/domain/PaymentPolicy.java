@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.domain;
+package uet.edu.net.booking_service.module.reservation.domain;
 
 public class PaymentPolicy {
     public boolean isValidLuhn (String cardNumber) {

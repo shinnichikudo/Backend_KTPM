@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.entity;
+package uet.edu.net.booking_service.module.reservation.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;

@@ -1,9 +1,9 @@
-package uet.edu.net.booking_service.Module.reservation.repository;
+package uet.edu.net.booking_service.module.reservation.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import uet.edu.net.booking_service.Module.reservation.entity.Payment;
+import uet.edu.net.booking_service.module.reservation.entity.Payment;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
