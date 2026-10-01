@@ -20,7 +20,7 @@ public class Payment {
     private BigDecimal amount;
 
     @Column(name = "payment_method", nullable = false, length = 50)
-    private String paymentMethod; // CREDIT_CARD
+    private String paymentMethod;
 
     @Column(name = "transaction_ref", unique = true, length = 100)
     private String transactionRef; // Mã giao dịch ảo

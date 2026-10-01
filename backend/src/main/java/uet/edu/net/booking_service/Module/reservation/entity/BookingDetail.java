@@ -14,6 +14,11 @@ public class BookingDetail {
     @Column(name = "booking_id", nullable = false)
     private Long bookingId;
 
+    // JPA relationship to satisfy @OneToMany(mappedBy = "booking") in Booking
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id", insertable = false, updatable = false)
+    private Booking booking;
+
     @Column(name = "room_id", nullable = false)
     private Long roomId;
 
