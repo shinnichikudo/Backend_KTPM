@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.contract;
+package uet.edu.net.booking_service.module.reservation.contract;
 
 import java.time.LocalDate;
 import java.util.List;

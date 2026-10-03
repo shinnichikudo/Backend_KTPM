@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.inventory.contract;
+package uet.edu.net.booking_service.module.inventory.contract;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
