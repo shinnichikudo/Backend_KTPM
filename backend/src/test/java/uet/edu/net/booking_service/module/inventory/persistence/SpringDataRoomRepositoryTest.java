@@ -4,13 +4,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import uet.edu.net.booking_service.module.inventory.domain.Room;
 import uet.edu.net.booking_service.module.inventory.domain.RoomStatus;
 import uet.edu.net.booking_service.module.inventory.domain.RoomType;
+import uet.edu.net.booking_service.module.inventory.service.port.RoomRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -27,6 +31,29 @@ class SpringDataRoomRepositoryTest {
 
     @Autowired
     private SpringDataRoomRepository repository;
+
+        @Autowired
+        private RoomRepository roomRepository;
+
+        @Test
+        void adapterPersistsAndReadsDomainRoom() {
+                Room saved = roomRepository.save(new Room(
+                                null,
+                                "501",
+                                RoomType.SUITE,
+                                3,
+                                new BigDecimal("1500000"),
+                                "Corner suite",
+                                RoomStatus.ACTIVE
+                ));
+
+                Room loaded = roomRepository.findById(saved.id()).orElseThrow();
+
+                assertNotNull(saved.id());
+                assertEquals("501", loaded.roomNumber());
+                assertEquals(RoomType.SUITE, loaded.roomType());
+                assertTrue(roomRepository.existsByRoomNumber("501"));
+        }
 
     @Test
     void filtersActiveRoomsByTypeCapacityAndPrice() {
