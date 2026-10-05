@@ -48,7 +48,7 @@ public class BookingService implements BookingServiceContract {
                                  int totalGuest) {
 
         validateDates(checkIn, checkOut);
-        authService.getUserByEmail(userId);
+        authService.getUserById(userId);
 
         return transactionTemplate.execute(status -> {
             RoomDTO room = roomService.getRoomForUpdate(roomId);
@@ -157,7 +157,7 @@ public class BookingService implements BookingServiceContract {
     }
 
     public List<Booking> getBookingsByUser(Long userId) {
-        authService.getUserByEmail(userId);
+        authService.getUserById(userId);
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
