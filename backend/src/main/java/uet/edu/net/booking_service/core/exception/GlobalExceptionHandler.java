@@ -40,12 +40,23 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(ErrorCode.INVALID_REQUEST.name(), ErrorCode.INVALID_REQUEST.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(new ErrorResponse("BAD_REQUEST", ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(409).body(new ErrorResponse("CONFLICT", ex.getMessage()));
+    }
+
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        log.error("Unhandled exception", ex);
+        log.error("Unhandled exception: ", ex);
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Đã có lỗi xảy ra";
         return ResponseEntity.internalServerError()
-                .body(new ErrorResponse("INTERNAL_ERROR", "Đã có lỗi xảy ra"));
+                .body(new ErrorResponse("INTERNAL_ERROR", msg));
     }
 }
