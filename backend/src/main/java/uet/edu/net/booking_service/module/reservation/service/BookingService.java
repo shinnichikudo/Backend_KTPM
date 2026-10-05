@@ -52,12 +52,12 @@ public class BookingService implements BookingServiceContract {
         authService.getUserById(userId);
 
         return transactionTemplate.execute(status -> {
-            RoomDTO room = roomService.getRoomForUpdate(roomId);
+            RoomDTO room = roomService.getActiveRoomById(roomId);
 
-            if (room.getCapacity() < totalGuest) {
+            if (room.capacity() < totalGuest) {
                 throw new IllegalArgumentException(
-                        "Phòng " + room.getRoomNumber() + " chỉ chứa tối đa "
-                                + room.getCapacity() + " khách.");
+                        "Phòng " + room.roomNumber() + " chỉ chứa tối đa "
+                                + room.capacity() + " khách.");
             }
 
             boolean isUnavailable = bookingRepository
@@ -65,12 +65,12 @@ public class BookingService implements BookingServiceContract {
                     .contains(roomId);
             if (isUnavailable) {
                 throw new IllegalStateException(
-                        "Phòng " + room.getRoomNumber()
+                        "Phòng " + room.roomNumber()
                                 + " đã được đặt trong khoảng thời gian này.");
             }
 
             long nights = bookingPolicy.caculateValidDay(checkIn, checkOut);
-            BigDecimal total = bookingPolicy.caculateTotalPrice(room.getBasePrice(), nights);
+            BigDecimal total = bookingPolicy.caculateTotalPrice(room.basePrice(), nights);
 
             Booking booking = Booking.builder()
                     .userId(userId)
@@ -86,7 +86,7 @@ public class BookingService implements BookingServiceContract {
                     .bookingId(booking.getId())
                     .booking(booking)
                     .roomId(roomId)
-                    .priceAtBooking(room.getBasePrice())
+                    .priceAtBooking(room.basePrice())
                     .build();
             bookingDetailRepository.save(detail);
 
