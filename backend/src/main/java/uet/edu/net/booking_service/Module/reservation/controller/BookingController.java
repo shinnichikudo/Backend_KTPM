@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.controller;
+package uet.edu.net.booking_service.module.reservation.controller;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.*;
 
 
 import lombok.RequiredArgsConstructor;
-import uet.edu.net.booking_service.Module.reservation.dto.BookingResponse;
-import uet.edu.net.booking_service.Module.reservation.dto.CreateBookingRequest;
-import uet.edu.net.booking_service.Module.reservation.entity.Booking;
-import uet.edu.net.booking_service.Module.reservation.service.BookingService;
+import uet.edu.net.booking_service.module.reservation.dto.BookingResponse;
+import uet.edu.net.booking_service.module.reservation.dto.CreateBookingRequest;
+import uet.edu.net.booking_service.module.reservation.entity.Booking;
+import uet.edu.net.booking_service.module.reservation.service.BookingService;
 
 
 
@@ -97,7 +97,5 @@ public class BookingController {
         }
         return response;
     }
-
-
     
 }

@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.domain;
+package uet.edu.net.booking_service.module.reservation.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

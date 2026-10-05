@@ -1,8 +1,4 @@
-package uet.edu.net.booking_service.Module.reservation.service;
-
-import uet.edu.net.booking_service.Module.reservation.domain.PaymentPolicy;
-import uet.edu.net.booking_service.Module.reservation.entity.Payment;
-import uet.edu.net.booking_service.Module.reservation.repository.PaymentRepository;
+package uet.edu.net.booking_service.module.reservation.service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -10,6 +6,9 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import uet.edu.net.booking_service.module.reservation.domain.PaymentPolicy;
+import uet.edu.net.booking_service.module.reservation.entity.Payment;
+import uet.edu.net.booking_service.module.reservation.repository.PaymentRepository;
 
 @Service
 @RequiredArgsConstructor
