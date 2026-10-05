@@ -1,5 +1,6 @@
 package uet.edu.net.booking_service.module.auth.service;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.core.security.JwtUtils;
+import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
@@ -19,7 +21,8 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 @Service
-public class AuthServiceImpl implements AuthService {
+@Primary
+public class AuthServiceImpl implements AuthService, AuthServiceContract {
 
     private static final String CUSTOMER_ROLE = "CUSTOMER";
     private static final Pattern STRONG_PASSWORD = Pattern.compile("^(?=.*[A-Z])(?=.*\\d).{8,}$");
@@ -89,17 +92,19 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserDTO getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .map(AuthServiceImpl::toDto)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
+
     private static String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
     private static UserDTO toDto(UserProfile user) {
         return new UserDTO(user.id(), user.email(), user.fullName(), user.role());
-    }
-
-    @Override
-    public UserDTO getUserByEmail(Long userId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUserByEmail'");
     }
 }
