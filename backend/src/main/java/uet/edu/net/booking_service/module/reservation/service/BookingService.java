@@ -14,6 +14,7 @@ import uet.edu.net.booking_service.module.reservation.repository.BookingReposito
 import uet.edu.net.booking_service.module.reservation.service.PaymentService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ public class BookingService implements BookingServiceContract {
                                  int totalGuest) {
 
         validateDates(checkIn, checkOut);
-        authService.getUserByEmail(userId);
+        authService.getUserById(userId);
 
         return transactionTemplate.execute(status -> {
             RoomDTO room = roomService.getRoomForUpdate(roomId);
@@ -83,6 +84,7 @@ public class BookingService implements BookingServiceContract {
 
             BookingDetail detail = BookingDetail.builder()
                     .bookingId(booking.getId())
+                    .booking(booking)
                     .roomId(roomId)
                     .priceAtBooking(room.getBasePrice())
                     .build();
@@ -150,15 +152,30 @@ public class BookingService implements BookingServiceContract {
         });
     }
 
+    @Transactional(readOnly = true)
     public Booking getBookingById(Long bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
     }
 
+    public Booking createBookingByEmail(String email, Long roomId,
+                                        LocalDate checkIn, LocalDate checkOut,
+                                        int totalGuest) {
+        uet.edu.net.booking_service.module.auth.contract.UserDTO user = authService.getUserByEmail(email);
+        return createBooking(user.id(), roomId, checkIn, checkOut, totalGuest);
+    }
+
+    @Transactional(readOnly = true)
     public List<Booking> getBookingsByUser(Long userId) {
-        authService.getUserByEmail(userId);
+        authService.getUserById(userId);
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Booking> getBookingsByUserEmail(String email) {
+        uet.edu.net.booking_service.module.auth.contract.UserDTO user = authService.getUserByEmail(email);
+        return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.id());
     }
 
 
