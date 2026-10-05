@@ -97,5 +97,16 @@ public class BookingController {
         }
         return response;
     }
+
+    @GetMapping("/booked-rooms")
+    public List<Long> getBookedRoomIds(
+            @RequestParam LocalDate checkIn,
+            @RequestParam LocalDate checkOut) {
+
+        return bookingService.getBookedRoomIds(
+                checkIn,
+                checkOut
+        );
+    }
     
 }
