@@ -160,8 +160,6 @@ public class BookingService implements BookingServiceContract {
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-
-
     private void validateDates(LocalDate checkIn, LocalDate checkOut) {
         if (checkIn == null || checkOut == null) {
             throw new IllegalArgumentException("Ngày nhận phòng và ngày trả phòng không được để trống.");
@@ -171,4 +169,10 @@ public class BookingService implements BookingServiceContract {
                     "Ngày nhận phòng phải trước ngày trả phòng.");
         }
     }
+
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
+
+
 }

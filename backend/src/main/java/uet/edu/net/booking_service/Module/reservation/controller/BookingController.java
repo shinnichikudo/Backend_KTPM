@@ -108,5 +108,33 @@ public class BookingController {
                 checkOut
         );
     }
+
+    @GetMapping
+    public List<BookingResponse> getAllBookings() {
+
+        List<Booking> bookings = bookingService.getAllBookings();
+
+        return bookings.stream().map(booking -> {
+
+            BookingResponse response = new BookingResponse();
+
+            response.setId(booking.getId());
+            response.setUserId(booking.getUserId());
+            response.setCheckInDate(booking.getCheckInDate());
+            response.setCheckOutDate(booking.getCheckOutDate());
+            response.setTotalGuest(booking.getTotalGuest());
+            response.setTotalPrice(booking.getTotalPrice());
+            response.setStatus(booking.getStatus());
+            response.setCreatedAt(booking.getCreatedAt());
+
+            if (!booking.getBookingDetails().isEmpty()) {
+                response.setRoomId(
+                        booking.getBookingDetails().get(0).getRoomId()
+                );
+            }
+
+            return response;
+        }).toList();
+    }
     
 }
