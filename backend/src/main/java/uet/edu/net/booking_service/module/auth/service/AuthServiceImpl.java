@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.core.security.JwtUtils;
-import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Primary
-public class AuthServiceImpl implements AuthService, AuthServiceContract {
+public class AuthServiceImpl implements AuthService {
 
     private static final String CUSTOMER_ROLE = "CUSTOMER";
     private static final Pattern STRONG_PASSWORD = Pattern.compile("^(?=.*[A-Z])(?=.*\\d).{8,}$");

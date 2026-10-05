@@ -50,6 +50,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(409).body(new ErrorResponse("CONFLICT", ex.getMessage()));
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException ex) {
+        return ResponseEntity.status(ErrorCode.FORBIDDEN.getHttpStatus())
+                .body(new ErrorResponse(ErrorCode.FORBIDDEN.name(), ErrorCode.FORBIDDEN.getMessage()));
+    }
+
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     @ExceptionHandler(Exception.class)
