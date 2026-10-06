@@ -1,6 +1,7 @@
 package uet.edu.net.booking_service.module.reservation.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -14,12 +15,15 @@ import uet.edu.net.booking_service.module.reservation.contract.BookingServiceCon
 import uet.edu.net.booking_service.module.reservation.domain.BookingPolicy;
 import uet.edu.net.booking_service.module.reservation.entity.Booking;
 import uet.edu.net.booking_service.module.reservation.entity.BookingDetail;
+import uet.edu.net.booking_service.module.reservation.entity.BookingNight;
 import uet.edu.net.booking_service.module.reservation.entity.Payment;
 import uet.edu.net.booking_service.module.reservation.repository.BookingDetailRepository;
+import uet.edu.net.booking_service.module.reservation.repository.BookingNightRepository;
 import uet.edu.net.booking_service.module.reservation.repository.BookingRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,6 +33,7 @@ public class BookingService implements BookingServiceContract {
     // ── Dependencies ────────────────────────────────────────────────────────────
     private final BookingRepository bookingRepository;
     private final BookingDetailRepository bookingDetailRepository;
+    private final BookingNightRepository bookingNightRepository;
 
     private final AuthServiceContract authService;
     private final RoomServiceContract roomService;
@@ -42,8 +47,7 @@ public class BookingService implements BookingServiceContract {
     @Override
     public List<Long> getBookedRoomIds(LocalDate checkIn, LocalDate checkOut) {
         validateDates(checkIn, checkOut);
-        List<Long> bookedRoomIds = bookingRepository.findBookedRoomIds(checkIn, checkOut);
-        return bookedRoomIds;
+        return bookingNightRepository.findBookedRoomIds(checkIn, checkOut);
     }
 
     /** Creates a booking after the authenticated user has been resolved. */
@@ -52,49 +56,63 @@ public class BookingService implements BookingServiceContract {
             int totalGuest) {
 
         validateDates(checkIn, checkOut);
-        return transactionTemplate.execute(status -> {
-            RoomDTO room = roomService.getActiveRoomById(roomId);
+        try {
+            return transactionTemplate.execute(status -> {
+                RoomDTO room = roomService.getActiveRoomById(roomId);
 
-            if (room.capacity() < totalGuest) {
-                throw new IllegalArgumentException(
-                        "Phòng " + room.roomNumber() + " chỉ chứa tối đa "
-                                + room.capacity() + " khách.");
-            }
+                if (room.capacity() < totalGuest) {
+                    throw new IllegalArgumentException(
+                            "Phòng " + room.roomNumber() + " chỉ chứa tối đa "
+                                    + room.capacity() + " khách.");
+                }
 
-            boolean isUnavailable = bookingRepository
-                    .findBookedRoomIds(checkIn, checkOut)
-                    .contains(roomId);
-            if (isUnavailable) {
-                throw new IllegalStateException(
-                        "Phòng " + room.roomNumber()
-                                + " đã được đặt trong khoảng thời gian này.");
-            }
+                boolean isUnavailable = bookingNightRepository
+                        .findBookedRoomIds(checkIn, checkOut)
+                        .contains(roomId);
+                if (isUnavailable) {
+                    throw new AppException(ErrorCode.ROOM_NOT_AVAILABLE);
+                }
 
-            long nights = bookingPolicy.caculateValidDay(checkIn, checkOut);
-            BigDecimal total = bookingPolicy.caculateTotalPrice(room.basePrice(), nights);
+                long nights = bookingPolicy.caculateValidDay(checkIn, checkOut);
+                BigDecimal total = bookingPolicy.caculateTotalPrice(room.basePrice(), nights);
 
-            Booking booking = Booking.builder()
-                    .userId(userId)
-                    .checkInDate(checkIn)
-                    .checkOutDate(checkOut)
-                    .totalGuest(totalGuest)
-                    .totalPrice(total)
-                    .status("PENDING")
-                    .build();
-            booking = bookingRepository.save(booking);
+                Booking booking = Booking.builder()
+                        .userId(userId)
+                        .checkInDate(checkIn)
+                        .checkOutDate(checkOut)
+                        .totalGuest(totalGuest)
+                        .totalPrice(total)
+                        .status("PENDING")
+                        .build();
+                booking = bookingRepository.save(booking);
 
-            BookingDetail detail = BookingDetail.builder()
-                    .bookingId(booking.getId())
-                    .booking(booking)
-                    .roomId(roomId)
-                    .priceAtBooking(room.basePrice())
-                    .build();
-            bookingDetailRepository.save(detail);
+                BookingDetail detail = BookingDetail.builder()
+                        .bookingId(booking.getId())
+                        .booking(booking)
+                        .roomId(roomId)
+                        .priceAtBooking(room.basePrice())
+                        .build();
+                bookingDetailRepository.save(detail);
 
-            booking.getBookingDetails().add(detail);
+                booking.getBookingDetails().add(detail);
 
-            return booking;
-        });
+                // Lưu từng đêm vào bảng booking_nights (Có Unique Constraint (room_id, night_date) chống double-booking tuyệt đối)
+                List<BookingNight> bookingNights = new ArrayList<>();
+                for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
+                    bookingNights.add(BookingNight.builder()
+                            .bookingId(booking.getId())
+                            .roomId(roomId)
+                            .nightDate(date)
+                            .build());
+                }
+                bookingNightRepository.saveAll(bookingNights);
+
+                return booking;
+            });
+        } catch (DataIntegrityViolationException ex) {
+            // Khi có 2 request đồng thời cùng đặt phòng, Unique Constraint (room_id, night_date) ở DB ném lỗi này
+            throw new AppException(ErrorCode.ROOM_NOT_AVAILABLE);
+        }
     }
 
     /** Pays a pending booking for its owner or an ADMIN. */
@@ -150,6 +168,7 @@ public class BookingService implements BookingServiceContract {
             }
 
             booking.setStatus("CANCELLED");
+            bookingNightRepository.deleteByBookingId(bookingId); // Giải phóng các đêm phòng đã đặt
             return bookingRepository.save(booking);
         });
     }
