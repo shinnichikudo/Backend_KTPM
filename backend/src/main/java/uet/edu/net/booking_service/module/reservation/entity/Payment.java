@@ -6,14 +6,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_payments_booking_id", columnNames = {"booking_id"})
+})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "booking_id", nullable = false)
+    @Column(name = "booking_id", nullable = false, unique = true)
     private Long bookingId;
     
     @Column(nullable = false)

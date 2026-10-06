@@ -3,9 +3,12 @@ package uet.edu.net.booking_service.module.reservation.service;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import uet.edu.net.booking_service.core.exception.AppException;
+import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.reservation.domain.PaymentPolicy;
 import uet.edu.net.booking_service.module.reservation.entity.Payment;
 import uet.edu.net.booking_service.module.reservation.repository.PaymentRepository;
@@ -19,9 +22,14 @@ public class PaymentService {
     private final PaymentPolicy paymentPolicy = new PaymentPolicy();
 
     public Payment processPayment(Long bookingId, BigDecimal amount, String cardNumber, String paymentMethod) {
-  
+
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Số tiền thanh toán không hợp lệ");
+        }
+
+        // Kiểm tra payment đã tồn tại trước khi tạo
+        if (paymentRepository.findByBookingId(bookingId).isPresent()) {
+            throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
 
         if (cardNumber == null || !paymentPolicy.isValidLuhn(cardNumber)) {
@@ -40,7 +48,11 @@ public class PaymentService {
                 .status("SUCCESS")
                 .build();
 
-        return paymentRepository.save(payment);
+        try {
+            return paymentRepository.saveAndFlush(payment);
+        } catch (DataIntegrityViolationException ex) {
+            throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
+        }
     }
 
 }

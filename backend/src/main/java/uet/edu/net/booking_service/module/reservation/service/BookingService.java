@@ -125,6 +125,10 @@ public class BookingService implements BookingServiceContract {
 
         assertOwnerOrAdmin(booking, requesterEmail, admin);
 
+        if ("PAID".equals(booking.getStatus())) {
+            throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
+        }
+
         if (!"PENDING".equals(booking.getStatus())) {
             throw new IllegalStateException(
                     "Đơn đặt phòng #" + bookingId + " không ở trạng thái PENDING.");
