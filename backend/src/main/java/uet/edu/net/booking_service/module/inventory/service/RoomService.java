@@ -1,33 +1,94 @@
 package uet.edu.net.booking_service.module.inventory.service;
 
 import org.springframework.stereotype.Service;
-import uet.edu.net.booking_service.module.inventory.contract.RoomDTO;
-import uet.edu.net.booking_service.module.inventory.contract.RoomServiceContract;
+import org.springframework.transaction.annotation.Transactional;
+import uet.edu.net.booking_service.module.inventory.domain.Room;
+import uet.edu.net.booking_service.module.inventory.domain.RoomStatus;
+import uet.edu.net.booking_service.module.inventory.domain.RoomType;
+import uet.edu.net.booking_service.module.inventory.service.exception.RoomNotFoundException;
+import uet.edu.net.booking_service.module.inventory.service.exception.RoomNumberAlreadyExistsException;
+import uet.edu.net.booking_service.module.inventory.service.port.RoomRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-/**
- * Implementation của RoomServiceContract cho module Inventory.
- * Trong kiến trúc Modular Monolith, class này đóng vai trò
- * là cổng giao tiếp nội bộ giữa module Reservation và module Inventory.
- */
 @Service
-public class RoomService implements RoomServiceContract {
+@Transactional
+public class RoomService {
 
-    @Override
-    public RoomDTO getRoomById(Long roomId) {
-        // TODO: Thay thế bằng logic thực tế (truy vấn RoomRepository)
-        if (roomId == null || roomId <= 0) {
-            throw new RuntimeException("Không tìm thấy phòng với ID: " + roomId);
-        }
-        // Placeholder — trả về RoomDTO giả để service hoạt động
-        return new RoomDTO(roomId, "P" + roomId, new BigDecimal("500000"), 2, "AVAILABLE");
+    private final RoomRepository roomRepository;
+
+    public RoomService(RoomRepository roomRepository) {
+        this.roomRepository = roomRepository;
     }
 
-    @Override
-    public RoomDTO getRoomForUpdate(Long roomId) {
-        // TODO: Thay thế bằng truy vấn với Pessimistic Lock (PESSIMISTIC_WRITE)
-        // Ví dụ: roomRepository.findByIdWithLock(roomId)
-        return getRoomById(roomId);
+    @Transactional(readOnly = true)
+    public List<Room> getActiveRooms(
+            RoomType roomType,
+            Integer minCapacity,
+            BigDecimal minPrice,
+            BigDecimal maxPrice
+    ) {
+        if (minCapacity != null && minCapacity < 1) {
+            throw new IllegalArgumentException("minCapacity must be at least 1");
+        }
+        if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
+            throw new IllegalArgumentException("minPrice must not exceed maxPrice");
+        }
+
+        return roomRepository.findActiveRooms(roomType, minCapacity, minPrice, maxPrice);
+    }
+
+    @Transactional(readOnly = true)
+    public Room getActiveRoomById(Long id) {
+        Room room = findById(id);
+        if (room.status() != RoomStatus.ACTIVE) {
+            throw new RoomNotFoundException(id);
+        }
+        return room;
+    }
+
+    public Room createRoom(Room requestedRoom) {
+        if (roomRepository.existsByRoomNumber(requestedRoom.roomNumber())) {
+            throw new RoomNumberAlreadyExistsException(requestedRoom.roomNumber());
+        }
+
+        Room room = new Room(
+                null,
+                requestedRoom.roomNumber(),
+                requestedRoom.roomType(),
+                requestedRoom.capacity(),
+                requestedRoom.basePrice(),
+                requestedRoom.description(),
+                RoomStatus.ACTIVE
+        );
+        return roomRepository.save(room);
+    }
+
+    public Room updateRoom(Long id, Room requestedRoom) {
+        Room existingRoom = findById(id);
+        if (roomRepository.existsByRoomNumberAndIdNot(requestedRoom.roomNumber(), id)) {
+            throw new RoomNumberAlreadyExistsException(requestedRoom.roomNumber());
+        }
+
+        Room updatedRoom = new Room(
+                existingRoom.id(),
+                requestedRoom.roomNumber(),
+                requestedRoom.roomType(),
+                requestedRoom.capacity(),
+                requestedRoom.basePrice(),
+                requestedRoom.description(),
+                existingRoom.status()
+        );
+        return roomRepository.save(updatedRoom);
+    }
+
+    public Room deactivateRoom(Long id) {
+        return roomRepository.save(findById(id).deactivate());
+    }
+
+    private Room findById(Long id) {
+        return roomRepository.findById(id)
+                .orElseThrow(() -> new RoomNotFoundException(id));
     }
 }
