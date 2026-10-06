@@ -2,11 +2,17 @@ package uet.edu.net.booking_service.module.reservation.controller;
 
 import java.util.List;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import uet.edu.net.booking_service.module.reservation.dto.BookingResponse;
 import uet.edu.net.booking_service.module.reservation.dto.CreateBookingRequest;
 import uet.edu.net.booking_service.module.reservation.dto.PayBookingRequest;
@@ -22,87 +28,62 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    /**
-     * Tạo đơn đặt phòng mới.
-     * - Nếu có đăng nhập (JWT): Tự động lấy user từ token.
-     * - Nếu truyền ?userId=...: Dùng userId đó.
-     */
+    /** Creates a booking for the authenticated CUSTOMER identified by JWT email. */
     @PostMapping
     public BookingResponse createBooking(
             Authentication authentication,
-            @RequestParam(required = false) Long userId,
             @RequestBody CreateBookingRequest request) {
-
-        Booking booking;
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())) {
-            // Lấy email trực tiếp từ JWT Token của người dùng
-            booking = bookingService.createBookingByEmail(
-                    authentication.getName(),
-                    request.getRoomId(),
-                    request.getCheckInDate(),
-                    request.getCheckOutDate(),
-                    request.getTotalGuest()
-            );
-        } else if (userId != null) {
-            booking = bookingService.createBooking(
-                    userId,
-                    request.getRoomId(),
-                    request.getCheckInDate(),
-                    request.getCheckOutDate(),
-                    request.getTotalGuest()
-            );
-        } else {
-            throw new IllegalArgumentException("Yêu cầu đăng nhập hoặc cung cấp userId");
-        }
-
+        Booking booking = bookingService.createBookingByEmail(
+                authentication.getName(),
+                request.getRoomId(),
+                request.getCheckInDate(),
+                request.getCheckOutDate(),
+                request.getTotalGuest());
         return mapToResponse(booking);
     }
 
-    /**
-     * Xem chi tiết 1 đơn đặt phòng theo ID.
-     */
-    @GetMapping(path = "/{id}")
-    public BookingResponse getBookingById(@PathVariable Long id) {
-        Booking booking = bookingService.getBookingById(id);
+    /** Returns a booking to its owner or an ADMIN. */
+    @GetMapping("/{id}")
+    public BookingResponse getBookingById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Booking booking = bookingService.getBookingById(
+                id,
+                authentication.getName(),
+                isAdmin(authentication));
         return mapToResponse(booking);
     }
 
-    /**
-     * Xem lịch sử đặt phòng của CHÍNH MÌNH (tự động nhận diện từ JWT Token).
-     * GET /api/bookings/my-bookings
-     */
+    /** Returns the authenticated user's booking history. */
     @GetMapping("/my-bookings")
     public List<BookingResponse> getMyBookings(Authentication authentication) {
-        String email = authentication.getName();
-        return bookingService.getBookingsByUserEmail(email).stream()
+        return bookingService.getBookingsByUserEmail(authentication.getName())
+                .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    /**
-     * Xem lịch sử đặt phòng của một người dùng theo userId.
-     * GET /api/bookings/user/{userId}
-     */
+    /** Returns a user's bookings; SecurityConfig restricts this endpoint to ADMIN. */
     @GetMapping("/user/{userId}")
     public List<BookingResponse> getBookingsByUser(@PathVariable Long userId) {
-        return bookingService.getBookingsByUser(userId).stream()
+        return bookingService.getBookingsByUser(userId)
+                .stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    /**
-     * Thanh toán đơn đặt phòng (PENDING -> PAID).
-     * POST /api/bookings/{id}/pay
-     */
+    /** Pays a pending booking for its owner or an ADMIN. */
     @PostMapping("/{id}/pay")
     public PaymentResponse payBooking(
             @PathVariable Long id,
+            Authentication authentication,
             @Valid @RequestBody PayBookingRequest request) {
         Payment payment = bookingService.payBooking(
                 id,
                 request.getCardNumber(),
-                request.getPaymentMethod()
-        );
+                request.getPaymentMethod(),
+                authentication.getName(),
+                isAdmin(authentication));
 
         PaymentResponse response = new PaymentResponse();
         response.setId(payment.getId());
@@ -115,7 +96,23 @@ public class BookingController {
         return response;
     }
 
-    // ── Helper mapping ──────────────────────────────────────────────────────────
+    /** Cancels a booking for its owner or an ADMIN. */
+    @DeleteMapping("/{id}")
+    public BookingResponse cancelBooking(
+            @PathVariable Long id,
+            Authentication authentication) {
+        Booking booking = bookingService.cancelBooking(
+                id,
+                authentication.getName(),
+                isAdmin(authentication));
+        return mapToResponse(booking);
+    }
+
+    private boolean isAdmin(Authentication authentication) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
         BookingResponse response = new BookingResponse();
         response.setId(booking.getId());

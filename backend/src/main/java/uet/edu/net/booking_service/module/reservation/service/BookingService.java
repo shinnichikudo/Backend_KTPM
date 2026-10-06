@@ -1,7 +1,13 @@
 package uet.edu.net.booking_service.module.reservation.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import uet.edu.net.booking_service.core.exception.AppException;
+import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
+import uet.edu.net.booking_service.module.auth.contract.UserDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomServiceContract;
 import uet.edu.net.booking_service.module.reservation.contract.BookingServiceContract;
@@ -11,15 +17,11 @@ import uet.edu.net.booking_service.module.reservation.entity.BookingDetail;
 import uet.edu.net.booking_service.module.reservation.entity.Payment;
 import uet.edu.net.booking_service.module.reservation.repository.BookingDetailRepository;
 import uet.edu.net.booking_service.module.reservation.repository.BookingRepository;
-import uet.edu.net.booking_service.module.reservation.service.PaymentService;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BookingService implements BookingServiceContract {
@@ -44,13 +46,12 @@ public class BookingService implements BookingServiceContract {
         return bookedRoomIds;
     }
 
-    public Booking createBooking(Long userId, Long roomId,
-                                 LocalDate checkIn, LocalDate checkOut,
-                                 int totalGuest) {
+    /** Creates a booking after the authenticated user has been resolved. */
+    private Booking createBookingInternal(Long userId, Long roomId,
+            LocalDate checkIn, LocalDate checkOut,
+            int totalGuest) {
 
         validateDates(checkIn, checkOut);
-        authService.getUserById(userId);
-
         return transactionTemplate.execute(status -> {
             RoomDTO room = roomService.getRoomForUpdate(roomId);
 
@@ -96,13 +97,15 @@ public class BookingService implements BookingServiceContract {
         });
     }
 
-
-    public Payment payBooking(Long bookingId, String cardNumber, String paymentMethod) {
+    /** Pays a pending booking for its owner or an ADMIN. */
+    public Payment payBooking(Long bookingId, String cardNumber, String paymentMethod,
+            String requesterEmail, boolean admin) {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
 
+        assertOwnerOrAdmin(booking, requesterEmail, admin);
 
         if (!"PENDING".equals(booking.getStatus())) {
             throw new IllegalStateException(
@@ -113,9 +116,7 @@ public class BookingService implements BookingServiceContract {
                 bookingId,
                 booking.getTotalPrice(),
                 cardNumber,
-                paymentMethod
-        );
-
+                paymentMethod);
 
         transactionTemplate.execute(status -> {
             booking.setStatus("PAID");
@@ -126,15 +127,17 @@ public class BookingService implements BookingServiceContract {
         return payment;
     }
 
-    public Booking cancelBooking(Long bookingId, Long userId) {
+    /** Cancels a booking for its owner or an ADMIN. */
+    public Booking cancelBooking(Long bookingId, String requesterEmail, boolean admin) {
         return transactionTemplate.execute(status -> {
+
+            Long userId = admin ? null : authService.getUserByEmail(requesterEmail).id();
 
             Booking booking = bookingRepository.findById(bookingId)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
 
-
-            if (!booking.getUserId().equals(userId)) {
+            if (!admin && !booking.getUserId().equals(userId)) {
                 throw new SecurityException(
                         "Người dùng #" + userId
                                 + " không có quyền huỷ đơn đặt phòng #" + bookingId + ".");
@@ -146,39 +149,58 @@ public class BookingService implements BookingServiceContract {
                                 + " vì trạng thái hiện tại là: " + booking.getStatus() + ".");
             }
 
-
             booking.setStatus("CANCELLED");
             return bookingRepository.save(booking);
         });
     }
 
-    @Transactional(readOnly = true)
-    public Booking getBookingById(Long bookingId) {
+    /** Loads a booking without performing authorization. */
+    private Booking findBookingById(Long bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
     }
 
+    @Transactional(readOnly = true)
+    /** Returns booking details only to its owner or an ADMIN. */
+    public Booking getBookingById(Long bookingId, String requesterEmail, boolean admin) {
+        Booking booking = findBookingById(bookingId);
+        assertOwnerOrAdmin(booking, requesterEmail, admin);
+        return booking;
+    }
+
+    /** Resolves the authenticated user once, then delegates to the internal create flow. */
     public Booking createBookingByEmail(String email, Long roomId,
-                                        LocalDate checkIn, LocalDate checkOut,
-                                        int totalGuest) {
+            LocalDate checkIn, LocalDate checkOut,
+            int totalGuest) {
         uet.edu.net.booking_service.module.auth.contract.UserDTO user = authService.getUserByEmail(email);
-        return createBooking(user.id(), roomId, checkIn, checkOut, totalGuest);
+        return createBookingInternal(user.id(), roomId, checkIn, checkOut, totalGuest);
     }
 
     @Transactional(readOnly = true)
+    /** Lists bookings for a user ID; the endpoint is restricted to ADMIN. */
     public List<Booking> getBookingsByUser(Long userId) {
         authService.getUserById(userId);
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     @Transactional(readOnly = true)
+    /** Lists the authenticated user's own booking history. */
     public List<Booking> getBookingsByUserEmail(String email) {
         uet.edu.net.booking_service.module.auth.contract.UserDTO user = authService.getUserByEmail(email);
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(user.id());
     }
 
-
+    /** Enforces ownership for customers while allowing ADMIN access. */
+    private void assertOwnerOrAdmin(Booking booking, String requesterEmail, boolean admin) {
+        if (admin) {
+            return;
+        }
+        UserDTO requester = authService.getUserByEmail(requesterEmail);
+        if (!booking.getUserId().equals(requester.id())) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
+    }
 
     private void validateDates(LocalDate checkIn, LocalDate checkOut) {
         if (checkIn == null || checkOut == null) {
