@@ -32,7 +32,7 @@ public class BookingController {
     @PostMapping
     public BookingResponse createBooking(
             Authentication authentication,
-            @RequestBody CreateBookingRequest request) {
+            @Valid @RequestBody CreateBookingRequest request) {
         Booking booking = bookingService.createBookingByEmail(
                 authentication.getName(),
                 request.getRoomId(),
