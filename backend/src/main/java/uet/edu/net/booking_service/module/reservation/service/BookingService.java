@@ -116,6 +116,7 @@ public class BookingService implements BookingServiceContract {
     }
 
     /** Pays a pending booking for its owner or an ADMIN. */
+    @Transactional
     public Payment payBooking(Long bookingId, String cardNumber, String paymentMethod,
             String requesterEmail, boolean admin) {
 
@@ -140,11 +141,8 @@ public class BookingService implements BookingServiceContract {
                 cardNumber,
                 paymentMethod);
 
-        transactionTemplate.execute(status -> {
-            booking.setStatus("PAID");
-            bookingRepository.save(booking);
-            return null;
-        });
+        booking.setStatus("PAID");
+        bookingRepository.save(booking);
 
         return payment;
     }
