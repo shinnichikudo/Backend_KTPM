@@ -120,9 +120,7 @@ public class BookingService implements BookingServiceContract {
     public Payment payBooking(Long bookingId, String cardNumber, String paymentMethod,
             String requesterEmail, boolean admin) {
 
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
+        Booking booking = findBookingById(bookingId);
 
         assertOwnerOrAdmin(booking, requesterEmail, admin);
 
@@ -153,9 +151,7 @@ public class BookingService implements BookingServiceContract {
 
             Long userId = admin ? null : authService.getUserByEmail(requesterEmail).id();
 
-            Booking booking = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
+            Booking booking = findBookingById(bookingId);
 
             if (!admin && !booking.getUserId().equals(userId)) {
                 throw new SecurityException(
@@ -178,8 +174,7 @@ public class BookingService implements BookingServiceContract {
     /** Loads a booking without performing authorization. */
     private Booking findBookingById(Long bookingId) {
         return bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy đơn đặt phòng với ID: " + bookingId));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)

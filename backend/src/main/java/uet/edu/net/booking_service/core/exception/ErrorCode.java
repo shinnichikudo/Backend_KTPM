@@ -9,6 +9,7 @@ public enum ErrorCode {
     WEAK_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa và số"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không đúng"),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"),
+    BOOKING_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy đơn đặt phòng"),
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy phòng đang hoạt động"),
     ROOM_NOT_AVAILABLE(HttpStatus.CONFLICT, "Phòng không còn trống trong khoảng ngày yêu cầu"),
     PAYMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "Đơn đặt phòng này đã được thanh toán"),
