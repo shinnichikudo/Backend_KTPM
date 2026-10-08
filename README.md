@@ -218,4 +218,4 @@ số_đêm = checkOutDate - checkInDate  (ngày check-out không tính là đêm
 
 ### Chống đặt trùng
 
-Trước khi tạo booking mới, hệ thống kiểm tra danh sách phòng đã được đặt trong khoảng ngày đó (`findBookedRoomIds`). Hai booking `[12→14]` và `[14→16]` **không xung đột** (khoảng nửa mở).
+Trước khi tạo booking mới, hệ thống kiểm tra xem phòng được yêu cầu có đêm nào đã được giữ trong khoảng ngày đó hay không. Hai booking `[12→14]` và `[14→16]` **không xung đột** (khoảng nửa mở).

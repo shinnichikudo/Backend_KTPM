@@ -11,7 +11,6 @@ import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomServiceContract;
-import uet.edu.net.booking_service.module.reservation.contract.BookingServiceContract;
 import uet.edu.net.booking_service.module.reservation.domain.BookingPolicy;
 import uet.edu.net.booking_service.module.reservation.entity.Booking;
 import uet.edu.net.booking_service.module.reservation.entity.BookingDetail;
@@ -28,7 +27,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BookingService implements BookingServiceContract {
+public class BookingService {
 
     // ── Dependencies ────────────────────────────────────────────────────────────
     private final BookingRepository bookingRepository;
@@ -42,13 +41,6 @@ public class BookingService implements BookingServiceContract {
     private final PaymentService paymentService;
 
     private final BookingPolicy bookingPolicy = new BookingPolicy();
-
-    // Implement BookingServiceContract
-    @Override
-    public List<Long> getBookedRoomIds(LocalDate checkIn, LocalDate checkOut) {
-        validateDates(checkIn, checkOut);
-        return bookingNightRepository.findBookedRoomIds(checkIn, checkOut);
-    }
 
     /** Creates a booking after the authenticated user has been resolved. */
     private Booking createBookingInternal(Long userId, Long roomId,
@@ -67,8 +59,8 @@ public class BookingService implements BookingServiceContract {
                 }
 
                 boolean isUnavailable = bookingNightRepository
-                        .findBookedRoomIds(checkIn, checkOut)
-                        .contains(roomId);
+                        .existsByRoomIdAndNightDateGreaterThanEqualAndNightDateLessThan(
+                                roomId, checkIn, checkOut);
                 if (isUnavailable) {
                     throw new AppException(ErrorCode.ROOM_NOT_AVAILABLE);
                 }
