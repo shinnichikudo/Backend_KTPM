@@ -115,14 +115,14 @@ public class BookingService implements BookingServiceContract {
         }
     }
 
-    /** Pays a pending booking for its owner or an ADMIN. */
+    /** Pays a pending booking only for its owner. */
     @Transactional
     public Payment payBooking(Long bookingId, String cardNumber, String paymentMethod,
-            String requesterEmail, boolean admin) {
+            String requesterEmail) {
 
         Booking booking = findBookingById(bookingId);
 
-        assertOwnerOrAdmin(booking, requesterEmail, admin);
+        assertOwner(booking, requesterEmail);
 
         if ("PAID".equals(booking.getStatus())) {
             throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
@@ -212,6 +212,11 @@ public class BookingService implements BookingServiceContract {
         if (admin) {
             return;
         }
+        assertOwner(booking, requesterEmail);
+    }
+
+    /** Enforces ownership for operations that must only be performed by the booking owner. */
+    private void assertOwner(Booking booking, String requesterEmail) {
         UserDTO requester = authService.getUserByEmail(requesterEmail);
         if (!booking.getUserId().equals(requester.id())) {
             throw new AppException(ErrorCode.FORBIDDEN);

@@ -72,7 +72,7 @@ public class BookingController {
                 .toList();
     }
 
-    /** Pays a pending booking for its owner or an ADMIN. */
+    /** Pays a pending booking only for its owner. */
     @PostMapping("/{id}/pay")
     public PaymentResponse payBooking(
             @PathVariable Long id,
@@ -82,8 +82,7 @@ public class BookingController {
                 id,
                 request.getCardNumber(),
                 request.getPaymentMethod(),
-                authentication.getName(),
-                isAdmin(authentication));
+                authentication.getName());
 
         PaymentResponse response = new PaymentResponse();
         response.setId(payment.getId());

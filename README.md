@@ -189,7 +189,7 @@ docker compose up --build
 | GET    | `/api/bookings/my-bookings`   | 🔒          | Lịch sử đặt phòng của mình (từ JWT)   | —                                                     | `List<BookingResponse>` |
 | GET    | `/api/bookings/user/{userId}` | 🔒          | Lịch sử đặt phòng theo userId         | —                                                     | `List<BookingResponse>` |
 | GET    | `/api/bookings/{id}`          | 🔒          | Chi tiết 1 đơn đặt phòng              | —                                                     | `BookingResponse`       |
-| POST   | `/api/bookings/{id}/pay`      | 🔒          | Thanh toán đơn (PENDING → PAID)       | `cardNumber`, `paymentMethod`                         | `PaymentResponse`       |
+| POST   | `/api/bookings/{id}/pay`      | 🔒 CUSTOMER/ADMIN (chủ booking) | Chỉ chủ booking được thanh toán (PENDING → PAID) | `cardNumber`, `paymentMethod` | `PaymentResponse`       |
 | DELETE | `/api/bookings/{id}/cancel`   | 🔒          | Hủy đơn (PENDING → CANCELLED)         | Query: `?userId=`                                     | `BookingResponse`       |
 
 ---

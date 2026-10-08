@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import uet.edu.net.booking_service.module.inventory.service.exception.RoomNotFoundException;
 
 import java.util.stream.Collectors;
 
@@ -21,6 +22,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ex.getCode().getHttpStatus())
                 .body(new ErrorResponse(ex.getCode().name(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRoomNotFound(RoomNotFoundException ex) {
+        return ResponseEntity
+                .status(ErrorCode.ROOM_NOT_FOUND.getHttpStatus())
+                .body(new ErrorResponse(ErrorCode.ROOM_NOT_FOUND.name(), ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
