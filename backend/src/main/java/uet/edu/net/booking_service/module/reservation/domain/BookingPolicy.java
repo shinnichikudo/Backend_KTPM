@@ -20,8 +20,13 @@ public class BookingPolicy {
             return basePrice.multiply(BigDecimal.valueOf(days));
         }
     }
-    // dieu kien de duoc huy don
+    /** Chi huy đuoc đon PENDING, don PAID chua ho tro huy vi chua co hoan tien. */
     public boolean canCancel(String currStatus) {
-        return currStatus.equals("PENDING");
+        return "PENDING".equals(currStatus);
+    }
+
+   /** Chu đon hoac ADMIN đuoc phep huy. */
+    public boolean canActorCancel(Long ownerId, Long actorId, boolean isAdmin) {
+        return isAdmin || ownerId.equals(actorId);
     }
 }
