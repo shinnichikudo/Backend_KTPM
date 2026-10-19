@@ -1,0 +1,11 @@
+target
+.git
+.idea
+.vscode
+backend/src/main/resources/application-local.properties
+backend/src/main/resources/application-*.properties
+**/application-local.properties
+*.properties.local
+.env
+.env.*
+

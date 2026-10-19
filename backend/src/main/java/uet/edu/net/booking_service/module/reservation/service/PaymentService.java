@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.reservation.domain.PaymentPolicy;
@@ -14,12 +13,15 @@ import uet.edu.net.booking_service.module.reservation.entity.Payment;
 import uet.edu.net.booking_service.module.reservation.repository.PaymentRepository;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
     private final PaymentPolicy paymentPolicy = new PaymentPolicy();
+
+    public PaymentService(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
+    }
 
     public Payment processPayment(Long bookingId, BigDecimal amount, String cardNumber, String paymentMethod) {
 

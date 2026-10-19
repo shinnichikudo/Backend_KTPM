@@ -40,7 +40,7 @@ public class BookingService {
 
     private final PaymentService paymentService;
 
-    private final BookingPolicy bookingPolicy = new BookingPolicy();
+    private BookingPolicy bookingPolicy = new BookingPolicy();
 
     /** Creates a booking after the authenticated user has been resolved. */
     private Booking createBookingInternal(Long userId, Long roomId,
