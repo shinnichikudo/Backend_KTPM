@@ -69,8 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         log.error("Unhandled exception: ", ex);
-        String msg = ex.getMessage() != null ? ex.getMessage() : "Đã có lỗi xảy ra";
         return ResponseEntity.internalServerError()
-                .body(new ErrorResponse("INTERNAL_ERROR", msg));
+                .body(new ErrorResponse("INTERNAL_ERROR", "Đã có lỗi xảy ra. Vui lòng thử lại sau."));
     }
 }

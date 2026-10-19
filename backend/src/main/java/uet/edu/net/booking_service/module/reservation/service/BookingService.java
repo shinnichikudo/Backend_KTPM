@@ -88,7 +88,8 @@ public class BookingService {
 
                 booking.getBookingDetails().add(detail);
 
-                // Lưu từng đêm vào bảng booking_nights (Có Unique Constraint (room_id, night_date) chống double-booking tuyệt đối)
+                // Lưu từng đêm vào bảng booking_nights (Có Unique Constraint (room_id,
+                // night_date) chống double-booking tuyệt đối)
                 List<BookingNight> bookingNights = new ArrayList<>();
                 for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
                     bookingNights.add(BookingNight.builder()
@@ -102,7 +103,8 @@ public class BookingService {
                 return booking;
             });
         } catch (DataIntegrityViolationException ex) {
-            // Khi có 2 request đồng thời cùng đặt phòng, Unique Constraint (room_id, night_date) ở DB ném lỗi này
+            // Khi có 2 request đồng thời cùng đặt phòng, Unique Constraint (room_id,
+            // night_date) ở DB ném lỗi này
             throw new AppException(ErrorCode.ROOM_NOT_AVAILABLE);
         }
     }
@@ -177,7 +179,10 @@ public class BookingService {
         return booking;
     }
 
-    /** Resolves the authenticated user once, then delegates to the internal create flow. */
+    /**
+     * Resolves the authenticated user once, then delegates to the internal create
+     * flow.
+     */
     public Booking createBookingByEmail(String email, Long roomId,
             LocalDate checkIn, LocalDate checkOut,
             int totalGuest) {
@@ -207,7 +212,10 @@ public class BookingService {
         assertOwner(booking, requesterEmail);
     }
 
-    /** Enforces ownership for operations that must only be performed by the booking owner. */
+    /**
+     * Enforces ownership for operations that must only be performed by the booking
+     * owner.
+     */
     private void assertOwner(Booking booking, String requesterEmail) {
         UserDTO requester = authService.getUserByEmail(requesterEmail);
         if (!booking.getUserId().equals(requester.id())) {
