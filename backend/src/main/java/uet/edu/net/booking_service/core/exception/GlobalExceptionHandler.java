@@ -2,6 +2,7 @@ package uet.edu.net.booking_service.core.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory; 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,14 +21,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException ex) {
         return ResponseEntity
-                .status(ex.getCode().getHttpStatus())
+                .status(httpStatusFor(ex.getCode()))
                 .body(new ErrorResponse(ex.getCode().name(), ex.getMessage()));
     }
 
     @ExceptionHandler(RoomNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleRoomNotFound(RoomNotFoundException ex) {
         return ResponseEntity
-                .status(ErrorCode.ROOM_NOT_FOUND.getHttpStatus())
+                .status(httpStatusFor(ErrorCode.ROOM_NOT_FOUND))
                 .body(new ErrorResponse(ErrorCode.ROOM_NOT_FOUND.name(), ex.getMessage()));
     }
 
@@ -60,8 +61,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException ex) {
-        return ResponseEntity.status(ErrorCode.FORBIDDEN.getHttpStatus())
+        return ResponseEntity.status(httpStatusFor(ErrorCode.FORBIDDEN))
                 .body(new ErrorResponse(ErrorCode.FORBIDDEN.name(), ErrorCode.FORBIDDEN.getMessage()));
+    }
+
+    private HttpStatus httpStatusFor(ErrorCode code) {
+        return switch (code) {
+            case UNAUTHORIZED, INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
+            case INVALID_REQUEST, WEAK_PASSWORD, WRONG_OLD_PASSWORD -> HttpStatus.BAD_REQUEST;
+            case EMAIL_ALREADY_EXISTS, ROOM_NOT_AVAILABLE, PAYMENT_ALREADY_EXISTS -> HttpStatus.CONFLICT;
+            case USER_NOT_FOUND, BOOKING_NOT_FOUND, ROOM_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+        };
     }
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
