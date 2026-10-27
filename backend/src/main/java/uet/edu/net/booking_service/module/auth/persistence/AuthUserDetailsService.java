@@ -1,4 +1,6 @@
-package uet.edu.net.booking_service.module.auth.service;
+package uet.edu.net.booking_service.module.auth.persistence;
+
+import java.util.Locale;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -10,14 +12,11 @@ import org.springframework.stereotype.Service;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
 import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
 
-import java.util.Locale;
-
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
-
+public class AuthUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    public AuthUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
