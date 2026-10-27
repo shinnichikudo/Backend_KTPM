@@ -1,8 +1,5 @@
 package uet.edu.net.booking_service.module.auth.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
@@ -12,7 +9,6 @@ import uet.edu.net.booking_service.module.auth.service.port.PasswordHasher;
 
 import java.util.regex.Pattern;
 
-@Service
 public class UserServiceImpl implements UserService {
 
     // Mật khẩu: tối thiểu 8 ký tự, ít nhất 1 chữ hoa, 1 chữ số
@@ -27,7 +23,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserDTO getProfile(String email) {
         UserProfile user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -35,7 +30,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public void changePassword(String email, String oldPassword, String newPassword) {
         UserProfile user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
