@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import uet.edu.net.booking_service.module.reservation.domain.Booking;
-import uet.edu.net.booking_service.module.reservation.entity.BookingDetail;
+import uet.edu.net.booking_service.module.reservation.persistence.entity.BookingDetail;
 import uet.edu.net.booking_service.module.reservation.service.port.BookingStore;
 
 @Repository

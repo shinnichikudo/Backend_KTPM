@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.entity;
+package uet.edu.net.booking_service.module.reservation.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

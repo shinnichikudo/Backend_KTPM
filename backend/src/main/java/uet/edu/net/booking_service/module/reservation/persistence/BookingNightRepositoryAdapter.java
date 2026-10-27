@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import uet.edu.net.booking_service.module.reservation.domain.RoomNightConflictException;
-import uet.edu.net.booking_service.module.reservation.entity.BookingNight;
+import uet.edu.net.booking_service.module.reservation.persistence.entity.BookingNight;
 import uet.edu.net.booking_service.module.reservation.service.port.BookingNightStore;
 
 @Repository

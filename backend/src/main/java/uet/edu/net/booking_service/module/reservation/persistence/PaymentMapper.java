@@ -7,7 +7,7 @@ import uet.edu.net.booking_service.module.reservation.domain.Payment;
 @Component
 public class PaymentMapper {
 
-    public Payment toDomain(uet.edu.net.booking_service.module.reservation.entity.Payment entity) {
+    public Payment toDomain(uet.edu.net.booking_service.module.reservation.persistence.entity.Payment entity) {
         return new Payment(
                 entity.getId(),
                 entity.getBookingId(),
@@ -18,8 +18,8 @@ public class PaymentMapper {
                 entity.getCreatedAt());
     }
 
-    public uet.edu.net.booking_service.module.reservation.entity.Payment toEntity(Payment payment) {
-        return uet.edu.net.booking_service.module.reservation.entity.Payment.builder()
+    public uet.edu.net.booking_service.module.reservation.persistence.entity.Payment toEntity(Payment payment) {
+        return uet.edu.net.booking_service.module.reservation.persistence.entity.Payment.builder()
                 .id(payment.id())
                 .bookingId(payment.bookingId())
                 .amount(payment.amount())

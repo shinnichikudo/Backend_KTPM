@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import uet.edu.net.booking_service.module.reservation.entity.BookingNight;
+import uet.edu.net.booking_service.module.reservation.persistence.entity.BookingNight;
 
 public interface SpringDataBookingNightRepository extends JpaRepository<BookingNight, Long> {
     boolean existsByRoomIdAndNightDateGreaterThanEqualAndNightDateLessThan(
