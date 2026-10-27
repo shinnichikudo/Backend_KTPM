@@ -1,8 +1,5 @@
 package uet.edu.net.booking_service.module.auth.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
@@ -16,7 +13,6 @@ import uet.edu.net.booking_service.module.auth.service.port.AccessTokenIssuer;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-@Service
 public class AuthServiceImpl implements AuthService {
 
     private static final String CUSTOMER_ROLE = "CUSTOMER";
@@ -39,7 +35,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public UserDTO register(String email, String rawPassword, String fullName, String phoneNumber) {
         String normalizedEmail = normalizeEmail(email);
         if (!STRONG_PASSWORD.matcher(rawPassword).matches()) {
@@ -63,7 +58,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public AuthResult login(String email, String rawPassword) {
         String normalizedEmail = normalizeEmail(email);
         if (!credentialVerifier.hasValidCredentials(normalizedEmail, rawPassword)) {
@@ -77,7 +71,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserDTO getUserByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email))
                 .map(AuthServiceImpl::toDto)
@@ -85,7 +78,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserDTO getUserById(Long userId) {
         return userRepository.findById(userId)
                 .map(AuthServiceImpl::toDto)
