@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
+import uet.edu.net.booking_service.module.auth.service.port.PasswordHasher;
 import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
 
 /** Seed tài khoản ADMIN khi có đủ hai biến môi trường cấu hình. */
@@ -17,7 +17,7 @@ public class AdminSeeder implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordHasher passwordHasher;
 
     @Value("${APP_ADMIN_EMAIL:}")
     private String adminEmail;
@@ -25,9 +25,9 @@ public class AdminSeeder implements CommandLineRunner {
     @Value("${APP_ADMIN_PASSWORD:}")
     private String adminPassword;
 
-    public AdminSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AdminSeeder(UserRepository userRepository, PasswordHasher passwordHasher) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordHasher = passwordHasher;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class AdminSeeder implements CommandLineRunner {
         }
 
         UserProfile admin = new UserProfile(
-                null, normalizedEmail, passwordEncoder.encode(adminPassword),
+                null, normalizedEmail, passwordHasher.hash(adminPassword),
                 "Admin", "0000000000", "ADMIN", null, null);
         userRepository.save(admin);
         log.info("AdminSeeder: tai khoan ADMIN {} da duoc tao.", normalizedEmail);
