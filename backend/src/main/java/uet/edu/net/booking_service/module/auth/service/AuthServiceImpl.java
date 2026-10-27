@@ -1,45 +1,41 @@
 package uet.edu.net.booking_service.module.auth.service;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
-import uet.edu.net.booking_service.core.security.JwtUtils;
 import uet.edu.net.booking_service.module.auth.contract.UserDTO;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
 import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
+import uet.edu.net.booking_service.module.auth.service.port.PasswordHasher;
+import uet.edu.net.booking_service.module.auth.service.port.CredentialVerifier;
+import uet.edu.net.booking_service.module.auth.service.port.AccessTokenIssuer;
 
 import java.util.Locale;
 import java.util.regex.Pattern;
 
 @Service
-@Primary
 public class AuthServiceImpl implements AuthService {
 
     private static final String CUSTOMER_ROLE = "CUSTOMER";
     private static final Pattern STRONG_PASSWORD = Pattern.compile("^(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtils jwtUtils;
+    private final PasswordHasher passwordHasher;
+    private final CredentialVerifier credentialVerifier;
+    private final AccessTokenIssuer accessTokenIssuer;
 
     public AuthServiceImpl(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager,
-            JwtUtils jwtUtils) {
+            PasswordHasher passwordHasher,
+            CredentialVerifier credentialVerifier,
+            AccessTokenIssuer accessTokenIssuer) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtUtils = jwtUtils;
+        this.passwordHasher = passwordHasher;
+        this.credentialVerifier = credentialVerifier;
+        this.accessTokenIssuer = accessTokenIssuer;
     }
 
     @Override
@@ -56,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         UserProfile newUser = new UserProfile(
                 null,
                 normalizedEmail,
-                passwordEncoder.encode(rawPassword),
+                passwordHasher.hash(rawPassword),
                 fullName.trim(),
                 phoneNumber.trim(),
                 CUSTOMER_ROLE,
@@ -70,17 +66,14 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(readOnly = true)
     public AuthResult login(String email, String rawPassword) {
         String normalizedEmail = normalizeEmail(email);
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(normalizedEmail, rawPassword));
-        } catch (AuthenticationException exception) {
+        if (!credentialVerifier.hasValidCredentials(normalizedEmail, rawPassword)) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         UserProfile user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_CREDENTIALS));
 
-        return new AuthResult(jwtUtils.generateToken(user.email(), user.role()), user.role());
+        return new AuthResult(accessTokenIssuer.issue(user.email(), user.role()), user.role());
     }
 
     @Override
