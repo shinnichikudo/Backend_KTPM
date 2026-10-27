@@ -17,16 +17,16 @@ import uet.edu.net.booking_service.module.reservation.dto.BookingResponse;
 import uet.edu.net.booking_service.module.reservation.dto.CreateBookingRequest;
 import uet.edu.net.booking_service.module.reservation.dto.PayBookingRequest;
 import uet.edu.net.booking_service.module.reservation.dto.PaymentResponse;
+import uet.edu.net.booking_service.module.reservation.domain.Booking;
 import uet.edu.net.booking_service.module.reservation.domain.Payment;
-import uet.edu.net.booking_service.module.reservation.entity.Booking;
-import uet.edu.net.booking_service.module.reservation.service.BookingService;
+import uet.edu.net.booking_service.module.reservation.service.port.BookingUseCases;
 
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
 public class BookingController {
 
-    private final BookingService bookingService;
+    private final BookingUseCases bookingService;
 
     /** Creates a booking for the authenticated CUSTOMER identified by JWT email. */
     @PostMapping
@@ -114,18 +114,15 @@ public class BookingController {
 
     private BookingResponse mapToResponse(Booking booking) {
         BookingResponse response = new BookingResponse();
-        response.setId(booking.getId());
-        response.setUserId(booking.getUserId());
-        response.setCheckInDate(booking.getCheckInDate());
-        response.setCheckOutDate(booking.getCheckOutDate());
-        response.setTotalGuest(booking.getTotalGuest());
-        response.setTotalPrice(booking.getTotalPrice());
-        response.setStatus(booking.getStatus());
-        response.setCreatedAt(booking.getCreatedAt());
-
-        if (booking.getBookingDetails() != null && !booking.getBookingDetails().isEmpty()) {
-            response.setRoomId(booking.getBookingDetails().get(0).getRoomId());
-        }
+        response.setId(booking.id());
+        response.setUserId(booking.userId());
+        response.setCheckInDate(booking.checkInDate());
+        response.setCheckOutDate(booking.checkOutDate());
+        response.setTotalGuest(booking.totalGuest());
+        response.setTotalPrice(booking.totalPrice());
+        response.setStatus(booking.status());
+        response.setCreatedAt(booking.createdAt());
+        response.setRoomId(booking.roomId());
         return response;
     }
 }
