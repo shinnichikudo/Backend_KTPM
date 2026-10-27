@@ -2,7 +2,7 @@ package uet.edu.net.booking_service.module.auth.service;
 
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
 import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
 import uet.edu.net.booking_service.module.auth.service.port.PasswordHasher;
@@ -23,10 +23,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getProfile(String email) {
+    public UserIdentity getProfile(String email) {
         UserProfile user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return new UserDTO(user.id(), user.email(), user.fullName(), user.role());
+        return new UserIdentity(user.id(), user.email(), user.fullName(), user.role());
     }
 
     @Override

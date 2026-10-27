@@ -2,7 +2,7 @@ package uet.edu.net.booking_service.module.auth.config;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.AuthService;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 
@@ -15,7 +15,7 @@ public class SpringTransactionalAuthService implements AuthService {
     }
 
     @Override
-    public UserDTO register(String email, String rawPassword, String fullName, String phoneNumber) {
+    public UserIdentity register(String email, String rawPassword, String fullName, String phoneNumber) {
         return delegate.register(email, rawPassword, fullName, phoneNumber);
     }
 
@@ -27,13 +27,13 @@ public class SpringTransactionalAuthService implements AuthService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO getUserByEmail(String email) {
+    public UserIdentity getUserByEmail(String email) {
         return delegate.getUserByEmail(email);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO getUserById(Long userId) {
+    public UserIdentity getUserById(Long userId) {
         return delegate.getUserById(userId);
     }
 }

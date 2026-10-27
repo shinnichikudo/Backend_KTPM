@@ -6,9 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
-import uet.edu.net.booking_service.module.auth.service.port.PasswordHasher;
-import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
+import uet.edu.net.booking_service.module.auth.service.AdminAccountProvisioner;
 
 /** Seed tài khoản ADMIN khi có đủ hai biến môi trường cấu hình. */
 @Component
@@ -16,8 +14,7 @@ public class AdminSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
 
-    private final UserRepository userRepository;
-    private final PasswordHasher passwordHasher;
+    private final AdminAccountProvisioner accountProvisioner;
 
     @Value("${APP_ADMIN_EMAIL:}")
     private String adminEmail;
@@ -25,9 +22,8 @@ public class AdminSeeder implements CommandLineRunner {
     @Value("${APP_ADMIN_PASSWORD:}")
     private String adminPassword;
 
-    public AdminSeeder(UserRepository userRepository, PasswordHasher passwordHasher) {
-        this.userRepository = userRepository;
-        this.passwordHasher = passwordHasher;
+    public AdminSeeder(AdminAccountProvisioner accountProvisioner) {
+        this.accountProvisioner = accountProvisioner;
     }
 
     @Override
@@ -43,15 +39,11 @@ public class AdminSeeder implements CommandLineRunner {
         }
 
         String normalizedEmail = adminEmail.trim().toLowerCase();
-        if (userRepository.existsByEmail(normalizedEmail)) {
+        boolean created = accountProvisioner.provision(normalizedEmail, adminPassword);
+        if (created) {
+            log.info("AdminSeeder: tai khoan ADMIN {} da duoc tao.", normalizedEmail);
+        } else {
             log.info("AdminSeeder: tai khoan {} da ton tai, bo qua.", normalizedEmail);
-            return;
         }
-
-        UserProfile admin = new UserProfile(
-                null, normalizedEmail, passwordHasher.hash(adminPassword),
-                "Admin", "0000000000", "ADMIN", null, null);
-        userRepository.save(admin);
-        log.info("AdminSeeder: tai khoan ADMIN {} da duoc tao.", normalizedEmail);
     }
 }

@@ -2,7 +2,7 @@ package uet.edu.net.booking_service.module.auth.config;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.UserService;
 
 @Transactional
@@ -15,7 +15,7 @@ public class SpringTransactionalUserService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO getProfile(String email) {
+    public UserIdentity getProfile(String email) {
         return delegate.getProfile(email);
     }
 

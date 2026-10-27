@@ -5,7 +5,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import uet.edu.net.booking_service.module.auth.api.dto.ChangePasswordRequest;
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.api.dto.UserResponse;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.UserService;
 
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserApiMapper userApiMapper;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserApiMapper userApiMapper) {
         this.userService = userService;
+        this.userApiMapper = userApiMapper;
     }
 
     /**
@@ -35,8 +38,9 @@ public class UserController {
      */
     @GetMapping("/me")
     @Operation(summary = "Xem hồ sơ của mình")
-    public ResponseEntity<UserDTO> getMyProfile(Authentication authentication) {
-        return ResponseEntity.ok(userService.getProfile(authentication.getName()));
+    public ResponseEntity<UserResponse> getMyProfile(Authentication authentication) {
+        UserIdentity identity = userService.getProfile(authentication.getName());
+        return ResponseEntity.ok(userApiMapper.toResponse(identity));
     }
 
     /**

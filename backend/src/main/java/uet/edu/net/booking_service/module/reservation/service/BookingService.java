@@ -7,7 +7,7 @@ import java.util.List;
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.inventory.contract.RoomDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomServiceContract;
 import uet.edu.net.booking_service.module.reservation.domain.Booking;
@@ -39,7 +39,7 @@ public class BookingService implements BookingUseCases {
     @Override
     public Booking createBookingByEmail(String email, Long roomId, LocalDate checkIn,
             LocalDate checkOut, int totalGuest) {
-        UserDTO user = authService.getUserByEmail(email);
+        UserIdentity user = authService.getUserByEmail(email);
         validateDates(checkIn, checkOut);
 
         RoomDTO room = roomService.getActiveRoomById(roomId);
@@ -117,7 +117,7 @@ public class BookingService implements BookingUseCases {
 
     @Override
     public List<Booking> getBookingsByUserEmail(String email) {
-        UserDTO user = authService.getUserByEmail(email);
+        UserIdentity user = authService.getUserByEmail(email);
         return bookingStore.findByUserId(user.id());
     }
 
@@ -127,7 +127,7 @@ public class BookingService implements BookingUseCases {
     }
 
     private void assertOwner(Booking booking, String requesterEmail) {
-        UserDTO requester = authService.getUserByEmail(requesterEmail);
+        UserIdentity requester = authService.getUserByEmail(requesterEmail);
         if (!booking.userId().equals(requester.id())) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }

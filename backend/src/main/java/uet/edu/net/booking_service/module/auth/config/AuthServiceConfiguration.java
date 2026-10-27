@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Primary;
 
 import uet.edu.net.booking_service.module.auth.service.UserService;
 import uet.edu.net.booking_service.module.auth.service.UserServiceImpl;
+import uet.edu.net.booking_service.module.auth.service.AdminAccountProvisioner;
+import uet.edu.net.booking_service.module.auth.service.AdminAccountProvisionerImpl;
 import uet.edu.net.booking_service.module.auth.service.AuthService;
 import uet.edu.net.booking_service.module.auth.service.AuthServiceImpl;
 import uet.edu.net.booking_service.module.auth.service.port.AccessTokenIssuer;
@@ -15,6 +17,19 @@ import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
 
 @Configuration
 public class AuthServiceConfiguration {
+
+    @Bean
+    AdminAccountProvisionerImpl adminAccountProvisionerImpl(
+            UserRepository userRepository,
+            PasswordHasher passwordHasher) {
+        return new AdminAccountProvisionerImpl(userRepository, passwordHasher);
+    }
+
+    @Bean
+    @Primary
+    AdminAccountProvisioner adminAccountProvisioner(AdminAccountProvisionerImpl provisioner) {
+        return new SpringTransactionalAdminAccountProvisioner(provisioner);
+    }
 
     @Bean
     UserServiceImpl userServiceImpl(UserRepository userRepository, PasswordHasher passwordHasher) {

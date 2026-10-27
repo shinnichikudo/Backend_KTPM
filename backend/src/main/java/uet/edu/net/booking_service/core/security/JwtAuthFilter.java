@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uet.edu.net.booking_service.module.auth.service.port.AccessTokenVerifier;
 
 import java.io.IOException;
 
@@ -24,12 +25,12 @@ import java.io.IOException;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtils jwtUtils;
+    private final AccessTokenVerifier accessTokenVerifier;
     // UserDetailsService load thông tin user từ DB theo email
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
-        this.jwtUtils = jwtUtils;
+    public JwtAuthFilter(AccessTokenVerifier accessTokenVerifier, UserDetailsService userDetailsService) {
+        this.accessTokenVerifier = accessTokenVerifier;
         this.userDetailsService = userDetailsService;
     }
 
@@ -45,8 +46,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7); // cắt bỏ "Bearer " lấy token thuần
 
-            if (jwtUtils.isValid(token)) {
-                String email = jwtUtils.extractEmail(token);
+            if (accessTokenVerifier.isValid(token)) {
+                String email = accessTokenVerifier.extractEmail(token);
 
                 // Load UserDetails từ DB để lấy authorities (roles)
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);

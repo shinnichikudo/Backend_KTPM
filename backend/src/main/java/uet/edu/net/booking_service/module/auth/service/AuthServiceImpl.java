@@ -2,7 +2,7 @@ package uet.edu.net.booking_service.module.auth.service;
 
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 import uet.edu.net.booking_service.module.auth.service.domain.UserProfile;
 import uet.edu.net.booking_service.module.auth.service.port.UserRepository;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDTO register(String email, String rawPassword, String fullName, String phoneNumber) {
+    public UserIdentity register(String email, String rawPassword, String fullName, String phoneNumber) {
         String normalizedEmail = normalizeEmail(email);
         if (!STRONG_PASSWORD.matcher(rawPassword).matches()) {
             throw new AppException(ErrorCode.WEAK_PASSWORD);
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
                 null,
                 null);
 
-        return toDto(userRepository.save(newUser));
+        return toIdentity(userRepository.save(newUser));
     }
 
     @Override
@@ -71,16 +71,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDTO getUserByEmail(String email) {
+    public UserIdentity getUserByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email))
-                .map(AuthServiceImpl::toDto)
+                .map(AuthServiceImpl::toIdentity)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
-    public UserDTO getUserById(Long userId) {
+    public UserIdentity getUserById(Long userId) {
         return userRepository.findById(userId)
-                .map(AuthServiceImpl::toDto)
+                .map(AuthServiceImpl::toIdentity)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -88,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private static UserDTO toDto(UserProfile user) {
-        return new UserDTO(user.id(), user.email(), user.fullName(), user.role());
+    private static UserIdentity toIdentity(UserProfile user) {
+        return new UserIdentity(user.id(), user.email(), user.fullName(), user.role());
     }
 }

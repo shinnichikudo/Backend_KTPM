@@ -4,7 +4,8 @@ import jakarta.validation.Valid;
 import uet.edu.net.booking_service.module.auth.api.dto.LoginRequest;
 import uet.edu.net.booking_service.module.auth.api.dto.LoginResponse;
 import uet.edu.net.booking_service.module.auth.api.dto.RegisterRequest;
-import uet.edu.net.booking_service.module.auth.contract.UserDTO;
+import uet.edu.net.booking_service.module.auth.api.dto.UserResponse;
+import uet.edu.net.booking_service.module.auth.contract.UserIdentity;
 import uet.edu.net.booking_service.module.auth.service.AuthService;
 import uet.edu.net.booking_service.module.auth.service.domain.AuthResult;
 
@@ -22,16 +23,18 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserApiMapper userApiMapper;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserApiMapper userApiMapper) {
         this.authService = authService;
+        this.userApiMapper = userApiMapper;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDTO> register(@Valid @RequestBody RegisterRequest request) {
-        UserDTO user = authService.register(
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
+        UserIdentity user = authService.register(
                 request.email(), request.password(), request.fullName(), request.phoneNumber());
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userApiMapper.toResponse(user));
     }
 
     @PostMapping("/login")
