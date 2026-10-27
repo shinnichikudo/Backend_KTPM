@@ -1,3 +1,31 @@
+# Environment & Secret files
 .env
 .env.*
+*.env
 !.env.example
+
+# Local Spring Boot Configuration
+**/application-local.properties
+*.properties.local
+
+# Build artifacts (Maven)
+target/
+**/target/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.apt_generated/
+.sts4-cache/
+.springBeans
+
+# OS files
+Thumbs.db
+.DS_Store
