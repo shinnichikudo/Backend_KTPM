@@ -4,9 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
 import uet.edu.net.booking_service.module.auth.contract.AuthServiceContract;
@@ -21,8 +18,6 @@ import uet.edu.net.booking_service.module.reservation.service.port.BookingNightS
 import uet.edu.net.booking_service.module.reservation.service.port.BookingStore;
 import uet.edu.net.booking_service.module.reservation.service.port.BookingUseCases;
 
-@Service
-@Transactional
 public class BookingService implements BookingUseCases {
 
     private final BookingStore bookingStore;
@@ -106,7 +101,6 @@ public class BookingService implements BookingUseCases {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Booking getBookingById(Long bookingId, String requesterEmail, boolean admin) {
         Booking booking = findBookingById(bookingId);
         if (!admin) {
@@ -116,14 +110,12 @@ public class BookingService implements BookingUseCases {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Booking> getBookingsByUser(Long userId) {
         authService.getUserById(userId);
         return bookingStore.findByUserId(userId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Booking> getBookingsByUserEmail(String email) {
         UserDTO user = authService.getUserByEmail(email);
         return bookingStore.findByUserId(user.id());
