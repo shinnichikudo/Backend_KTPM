@@ -8,13 +8,14 @@ import uet.edu.net.booking_service.module.inventory.domain.RoomType;
 import uet.edu.net.booking_service.module.inventory.service.exception.RoomNotFoundException;
 import uet.edu.net.booking_service.module.inventory.service.exception.RoomNumberAlreadyExistsException;
 import uet.edu.net.booking_service.module.inventory.service.port.RoomRepository;
+import uet.edu.net.booking_service.module.inventory.service.port.RoomUseCases;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @Transactional
-public class RoomService {
+public class RoomService implements RoomUseCases {
 
     private final RoomRepository roomRepository;
 

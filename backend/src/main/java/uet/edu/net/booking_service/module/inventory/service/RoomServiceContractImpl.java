@@ -4,13 +4,14 @@ import org.springframework.stereotype.Component;
 import uet.edu.net.booking_service.module.inventory.contract.RoomDTO;
 import uet.edu.net.booking_service.module.inventory.contract.RoomServiceContract;
 import uet.edu.net.booking_service.module.inventory.domain.Room;
+import uet.edu.net.booking_service.module.inventory.service.port.RoomUseCases;
 
 @Component
 public class RoomServiceContractImpl implements RoomServiceContract {
 
-    private final RoomService roomService;
+    private final RoomUseCases roomService;
 
-    public RoomServiceContractImpl(RoomService roomService) {
+    public RoomServiceContractImpl(RoomUseCases roomService) {
         this.roomService = roomService;
     }
 

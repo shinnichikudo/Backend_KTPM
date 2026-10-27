@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uet.edu.net.booking_service.module.inventory.domain.RoomType;
-import uet.edu.net.booking_service.module.inventory.service.RoomService;
+import uet.edu.net.booking_service.module.inventory.service.port.RoomUseCases;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,10 +28,10 @@ import java.util.List;
 @Validated
 public class RoomController {
 
-    private final RoomService roomService;
+    private final RoomUseCases roomService;
     private final RoomApiMapper mapper;
 
-    public RoomController(RoomService roomService, RoomApiMapper mapper) {
+    public RoomController(RoomUseCases roomService, RoomApiMapper mapper) {
         this.roomService = roomService;
         this.mapper = mapper;
     }
