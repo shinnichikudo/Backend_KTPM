@@ -17,8 +17,8 @@ import uet.edu.net.booking_service.module.reservation.dto.BookingResponse;
 import uet.edu.net.booking_service.module.reservation.dto.CreateBookingRequest;
 import uet.edu.net.booking_service.module.reservation.dto.PayBookingRequest;
 import uet.edu.net.booking_service.module.reservation.dto.PaymentResponse;
+import uet.edu.net.booking_service.module.reservation.domain.Payment;
 import uet.edu.net.booking_service.module.reservation.entity.Booking;
-import uet.edu.net.booking_service.module.reservation.entity.Payment;
 import uet.edu.net.booking_service.module.reservation.service.BookingService;
 
 @RestController
@@ -85,13 +85,13 @@ public class BookingController {
                 authentication.getName());
 
         PaymentResponse response = new PaymentResponse();
-        response.setId(payment.getId());
-        response.setBookingId(payment.getBookingId());
-        response.setAmount(payment.getAmount());
-        response.setPaymentMethod(payment.getPaymentMethod());
-        response.setTransactionRef(payment.getTransactionRef());
-        response.setStatus(payment.getStatus());
-        response.setCreatedAt(payment.getCreatedAt());
+        response.setId(payment.id());
+        response.setBookingId(payment.bookingId());
+        response.setAmount(payment.amount());
+        response.setPaymentMethod(payment.paymentMethod());
+        response.setTransactionRef(payment.transactionRef());
+        response.setStatus(payment.status());
+        response.setCreatedAt(payment.createdAt());
         return response;
     }
 

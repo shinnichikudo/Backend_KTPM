@@ -3,24 +3,21 @@ package uet.edu.net.booking_service.module.reservation.service;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.stereotype.Service;
-
 import uet.edu.net.booking_service.core.exception.AppException;
 import uet.edu.net.booking_service.core.exception.ErrorCode;
+import uet.edu.net.booking_service.module.reservation.domain.Payment;
+import uet.edu.net.booking_service.module.reservation.domain.PaymentAlreadyExistsException;
 import uet.edu.net.booking_service.module.reservation.domain.PaymentPolicy;
-import uet.edu.net.booking_service.module.reservation.entity.Payment;
-import uet.edu.net.booking_service.module.reservation.repository.PaymentRepository;
+import uet.edu.net.booking_service.module.reservation.service.port.PaymentStore;
 
-@Service
 public class PaymentService {
 
-    private final PaymentRepository paymentRepository;
+    private final PaymentStore paymentStore;
 
     private final PaymentPolicy paymentPolicy = new PaymentPolicy();
 
-    public PaymentService(PaymentRepository paymentRepository) {
-        this.paymentRepository = paymentRepository;
+    public PaymentService(PaymentStore paymentStore) {
+        this.paymentStore = paymentStore;
     }
 
     public Payment processPayment(Long bookingId, BigDecimal amount, String cardNumber, String paymentMethod) {
@@ -30,7 +27,7 @@ public class PaymentService {
         }
 
         // Kiểm tra payment đã tồn tại trước khi tạo
-        if (paymentRepository.findByBookingId(bookingId).isPresent()) {
+        if (paymentStore.findByBookingId(bookingId).isPresent()) {
             throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
 
@@ -42,17 +39,17 @@ public class PaymentService {
             throw new IllegalArgumentException("Phương thức thanh toán không được hỗ trợ.");
         }
 
-        Payment payment = Payment.builder()
-                .bookingId(bookingId)
-                .amount(amount)
-                .paymentMethod(paymentMethod)
-                .transactionRef(UUID.randomUUID().toString())
-                .status("SUCCESS")
-                .build();
-
         try {
-            return paymentRepository.saveAndFlush(payment);
-        } catch (DataIntegrityViolationException ex) {
+            Payment payment = new Payment(
+                    null,
+                    bookingId,
+                    amount,
+                    paymentMethod,
+                    UUID.randomUUID().toString(),
+                    "SUCCESS",
+                    null);
+            return paymentStore.save(payment);
+        } catch (PaymentAlreadyExistsException ex) {
             throw new AppException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
     }
