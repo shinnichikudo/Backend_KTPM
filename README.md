@@ -1,221 +1,132 @@
-#  Booking Service — Hotel Reservation Backend
+# Booking Service
 
-REST API backend cho hệ thống đặt phòng khách sạn, xây dựng bằng **Spring Boot 4** và **MySQL**.
+Dịch vụ backend đặt phòng khách sạn, xây dựng bằng Java 21 và Spring Boot. Hệ thống cung cấp REST API trao đổi JSON, lưu dữ liệu trong MySQL và dùng JWT để xác thực các thao tác cần tài khoản.
 
----
+## 1. Bài toán và phạm vi
 
-##  Mục lục
+Khách cần xem phòng khách sạn, chọn ngày lưu trú và đặt phòng mà không tạo ra hai booking chiếm cùng một phòng trong cùng một đêm. Nhân viên quản trị cần quản lý danh mục phòng và tra cứu các booking để hỗ trợ vận hành.
 
-- [Giới thiệu](#giới-thiệu)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-- [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-- [Tính năng](#tính-năng)
-- [Cài đặt và chạy](#cài-đặt-và-chạy)
-- [Cấu hình môi trường](#cấu-hình-môi-trường)
-- [API Endpoints](#api-endpoints)
-- [Luồng nghiệp vụ](#luồng-nghiệp-vụ)
+Phiên bản này tập trung vào ba nghiệp vụ: quản lý tài khoản, quản lý phòng và đặt phòng. Một booking áp dụng cho **một phòng** và một khoảng ngày. Giá được tính theo giá cơ bản của phòng nhân số đêm. Hệ thống có thanh toán mô phỏng để hoàn chỉnh luồng booking, nhưng không kết nối ngân hàng hay cổng thanh toán thật.
 
----
+### Vai trò
 
-## Giới thiệu
+- **CUSTOMER:** đăng ký, đăng nhập, xem/cập nhật hồ sơ mật khẩu, tra cứu phòng, tạo booking, xem booking của mình, thanh toán mô phỏng và hủy booking khi trạng thái cho phép.
+- **ADMIN:** quản lý phòng; xem booking theo tài khoản, xem chi tiết và hủy booking.
+- **Khách chưa đăng nhập:** xem danh sách và thông tin chi tiết phòng; đăng ký hoặc đăng nhập.
 
-Hệ thống cung cấp các REST API cho phép:
+### Quy tắc nghiệp vụ chính
 
-- Người dùng **đăng ký**, **đăng nhập** và quản lý tài khoản bằng JWT.
-- Xem danh sách **phòng** và đặt phòng theo ngày.
-- Thực hiện **thanh toán mô phỏng** (kiểm tra số thẻ Luhn, tạo transaction ref ngẫu nhiên).
-- **Hủy đơn** đặt phòng khi còn trong trạng thái chờ.
-- ADMIN quản lý kho phòng (thêm, sửa, ngừng kinh doanh).
+1. Booking mới có trạng thái `PENDING`. Hệ thống xác định chủ booking từ email trong JWT, không nhận `userId` từ request tạo booking.
+2. Ngày nhận phòng phải trước ngày trả phòng; số khách phải nằm trong sức chứa phòng. Tổng tiền bằng `basePrice × số đêm`, trong đó ngày trả phòng không tính thành một đêm.
+3. Các đêm được giữ trong `booking_nights`. Ràng buộc duy nhất trên `(room_id, night_date)` ngăn hai booking cùng giữ một phòng/đêm, kể cả khi có request đồng thời. Hai khoảng liền kề `[12, 14)` và `[14, 16)` không trùng nhau.
+4. Thanh toán mô phỏng hợp lệ chuyển booking `PENDING` sang `PAID`. Hủy chuyển `PENDING` sang `CANCELLED` và giải phóng các đêm đã giữ. Booking đã thanh toán hiện chưa hỗ trợ hủy/hoàn tiền.
+5. API chi tiết booking kiểm tra chủ sở hữu; ADMIN được xem booking của mọi người. API thanh toán chỉ cho CUSTOMER thanh toán booking của chính họ.
 
----
+## 2. API và bảo mật
 
-## Công nghệ sử dụng
+API tuân theo mô hình REST, dùng các method HTTP phù hợp (`GET`, `POST`, `PUT`, `DELETE`) và JSON request/response. Tài liệu tương tác được cung cấp bằng Swagger UI tại <http://localhost:8080/swagger-ui/index.html> khi ứng dụng đang chạy.
 
-| Thành phần                     | Phiên bản |
-| ------------------------------ | --------- |
-| Java                           | 21        |
-| Spring Boot                    | 4.1.x     |
-| Spring Security + JWT (JJWT)   | 0.12.x    |
-| MySQL                          | 9.x       |
-| JPA / Hibernate                | 7.x       |
-| Docker + Docker Compose        | —         |
-| springdoc-openapi (Swagger UI) | —         |
+| Method | Endpoint | Quyền | Mục đích |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/register` | Public | Đăng ký tài khoản CUSTOMER |
+| `POST` | `/api/auth/login` | Public | Đăng nhập và nhận access token |
+| `GET` | `/api/users/me` | Đã đăng nhập | Xem hồ sơ của mình |
+| `PUT` | `/api/users/me/password` | Đã đăng nhập | Đổi mật khẩu |
+| `GET` | `/api/rooms` | Public | Liệt kê phòng ACTIVE; lọc bằng `roomType`, `capacity`, `minPrice`, `maxPrice` |
+| `GET` | `/api/rooms/{id}` | Public | Xem chi tiết phòng ACTIVE |
+| `POST` | `/api/rooms` | ADMIN | Tạo phòng |
+| `PUT` | `/api/rooms/{id}` | ADMIN | Cập nhật phòng |
+| `DELETE` | `/api/rooms/{id}` | ADMIN | Ngừng kinh doanh phòng |
+| `POST` | `/api/bookings` | CUSTOMER | Tạo booking cho tài khoản đang đăng nhập |
+| `GET` | `/api/bookings/my-bookings` | CUSTOMER/ADMIN | Xem booking của tài khoản đang đăng nhập |
+| `GET` | `/api/bookings/user/{userId}` | ADMIN | Tra cứu booking theo người dùng |
+| `GET` | `/api/bookings/{id}` | Chủ booking/ADMIN | Xem chi tiết booking |
+| `POST` | `/api/bookings/{id}/pay` | CUSTOMER là chủ booking | Thanh toán mô phỏng |
+| `DELETE` | `/api/bookings/{id}` | Chủ booking/ADMIN | Hủy booking nếu trạng thái cho phép |
 
----
+Spring Security áp dụng xác thực và phân quyền ở filter chain; JWT được kiểm tra trong `JwtAuthFilter`. Quyền sở hữu booking được kiểm tra trong nghiệp vụ. Các lỗi API dùng phản hồi JSON có `code` và `message`; dữ liệu đầu vào được kiểm tra bằng Bean Validation ở tầng API.
 
-## Kiến trúc hệ thống
+## 3. Kiến trúc và tổ chức mã nguồn
 
-Dự án theo kiến trúc **Modular Monolith** — một ứng dụng Spring Boot duy nhất, chia theo nghiệp vụ thành 3 module độc lập:
+Dự án là **modular monolith**: một ứng dụng backend được chia thành module theo nghiệp vụ. Mã nguồn chính nằm trong `backend/src/main/java/uet/edu/net/booking_service/`:
 
-```
-uet.edu.net.booking_service
-├── core/                   # Cấu hình bảo mật, xử lý lỗi chung, OpenAPI
-└── module/
-    ├── auth/               # Đăng ký, đăng nhập, quản lý tài khoản
-    │   ├── api/            # AuthController, UserController
-    │   ├── contract/       # AuthServiceContract, UserDTO  ← public
-    │   ├── persistence/    # UserEntity, JPA repository
-    │   └── service/        # AuthService, UserService, UserDetailsService
-    ├── inventory/          # Quản lý kho phòng
-    │   ├── api/            # RoomController
-    │   ├── contract/       # RoomServiceContract, RoomDTO  ← public
-    │   ├── domain/         # Room, RoomStatus, RoomType
-    │   ├── persistence/    # RoomEntity, JPA repository
-    │   └── service/        # RoomService, RoomServiceContractImpl
-    └── reservation/        # Đặt phòng, thanh toán, hủy đơn
-        ├── controller/     # BookingController
-        ├── dto/            # CreateBookingRequest, PayBookingRequest, ...
-        ├── entity/         # Booking, BookingDetail, Payment
-        ├── repository/     # BookingRepository, BookingDetailRepository
-        ├── service/        # BookingService, PaymentService
-        └── domain/         # BookingPolicy (luật nghiệp vụ ngày/giá)
+```text
++-- core/
+|   +-- config/       # Security, CORS, OpenAPI
+|   +-- exception/    # Mã lỗi và xử lý lỗi dùng chung
+|   +-- security/     # JWT request filter
++-- module/
+    +-- auth/         # Đăng ký, đăng nhập, tài khoản và hồ sơ
+    +-- inventory/    # Danh mục và trạng thái phòng
+    +-- reservation/ # Booking, giữ đêm và thanh toán mô phỏng
 ```
 
-**Luồng phụ thuộc:**  
-`api → service → port/contract → persistence`  
-Module `reservation` chỉ giao tiếp với `auth` và `inventory` qua interface công khai (`contract/`) — không bao giờ gọi trực tiếp repository của module khác.
+Trong từng module, các phần quan trọng được phân lớp:
 
----
+- `api/`: controller, request/response DTO và chuyển đổi dữ liệu HTTP.
+- `domain/`, `service/`: mô hình và quy tắc nghiệp vụ thuần Java.
+- `service/port/` hoặc `contract/`: giao diện mà nghiệp vụ cần để truy cập dữ liệu hay gọi module khác.
+- `persistence/`: entity JPA, Spring Data repository và adapter ánh xạ giữa database với mô hình nghiệp vụ.
+- `config/`: khởi tạo use case và tích hợp transaction của Spring ở bên ngoài nghiệp vụ.
 
-## Tính năng
+Luồng xử lý là **API → use case nghiệp vụ → port/contract → adapter persistence**. Các use case chính (`AuthServiceImpl`, `UserServiceImpl`, `RoomService`, `BookingService`, `PaymentService`) không phụ thuộc controller, Spring Data hay entity JPA. Vì vậy tầng nghiệp vụ đáp ứng yêu cầu không import framework web hoặc thư viện truy cập database; framework được dùng ở các lớp API, cấu hình và adapter.
 
-### Auth
+## 4. Framework và yêu cầu kỹ thuật
 
--  Đăng ký tài khoản (role mặc định: `CUSTOMER`)
--  Đăng nhập, nhận JWT Bearer token
--  Xem hồ sơ cá nhân (`/api/users/me`)
--  Đổi mật khẩu
--  Tài khoản ADMIN được seed tự động qua `AdminSeeder`
+| Yêu cầu | Cách đáp ứng |
+| --- | --- |
+| REST API, giao tiếp JSON | Spring MVC controllers và DTO cho request/response |
+| Có `POST`, `GET`, `DELETE` | Đăng ký/đăng nhập, tra cứu phòng/booking, ngừng kinh doanh phòng và hủy booking |
+| Tài liệu API | springdoc OpenAPI và Swagger UI |
+| Tách API, nghiệp vụ, truy cập dữ liệu | Các lớp `api`, use case/domain, port và adapter `persistence` |
+| ORM / Data Access Layer | Spring Data JPA, Hibernate, MySQL và repository adapter |
+| Đăng nhập và endpoint được bảo vệ | JWT Bearer token, Spring Security filter chain và phân quyền theo role |
+| Đóng gói triển khai | Dockerfile nhiều giai đoạn và Docker Compose gồm ứng dụng, MySQL, health check và volume |
+| Quản lý cấu hình nhạy cảm | `.env.example` làm mẫu; `.env` và cấu hình local được Git ignore |
 
-### Inventory (Quản lý phòng)
+Framework sử dụng: **Spring Boot 4.1.1**, **Spring Security**, **Spring Data JPA/Hibernate**, **JJWT 0.12.6**, **springdoc OpenAPI 3.0.0**, **MySQL 8.0** và **Docker Compose**.
 
--  Xem danh sách phòng đang hoạt động, có filter theo loại phòng, sức chứa, giá
--  Xem chi tiết phòng
--  ADMIN: Tạo phòng mới
--  ADMIN: Cập nhật thông tin phòng
--  ADMIN: Ngừng kinh doanh phòng (soft delete: `ACTIVE` → `INACTIVE`)
+## 5. Chạy ứng dụng
 
-### Reservation (Đặt phòng)
+Cần Docker Desktop với Docker Engine đang chạy. Từ thư mục gốc repository, tạo file cấu hình local:
 
--  Tạo đơn đặt phòng (nhận diện user từ JWT)
--  Xem lịch sử đặt phòng của chính mình
--  Xem lịch sử đặt phòng theo userId
--  Xem chi tiết 1 đơn
--  Thanh toán mô phỏng (kiểm tra Luhn, tạo transaction ref)
--  Hủy đơn (chỉ chủ đơn, chỉ khi đang `PENDING`)
--  Chống đặt trùng phòng (kiểm tra overlap ngày)
-
----
-
-## Cài đặt và chạy
-
-### Yêu cầu
-
-- Java 21+
-- Maven 3.9+
-- MySQL đang chạy (cấu hình port trong `application.properties`)
-
-### Chạy trực tiếp
-
-```bash
-# Clone repo
-git clone <repo-url>
-cd backend
-
-# Build và chạy
-./mvnw spring-boot:run
+```powershell
+Copy-Item .env.example .env
 ```
 
-Ứng dụng sẽ khởi động tại: `http://localhost:8080`  
-Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+Đổi giá trị mật khẩu MySQL và `JWT_SECRET` trong `.env`; không commit file này. `MYSQL_HOST_PORT` là cổng MySQL mở trên máy host và có thể đổi nếu bị trùng. Ứng dụng trong Docker luôn kết nối MySQL qua tên service và cổng nội bộ `3306`.
 
-### Chạy bằng Docker Compose
+Khởi động và xem trạng thái:
 
-```bash
-docker compose up --build
+```powershell
+docker compose up --build -d
+docker compose ps
+docker compose logs -f app
 ```
 
-> Database `booking_db` được tạo tự động. Bảng được tạo qua `ddl-auto=update`.
+Mở Swagger UI: <http://localhost:8080/swagger-ui/index.html>. Chọn **Authorize**, nhập `Bearer <accessToken>` sau khi đăng nhập để gọi API cần xác thực. Nếu muốn tự tạo ADMIN, điền cả `APP_ADMIN_EMAIL` và `APP_ADMIN_PASSWORD` trong `.env`; nếu để trống cả hai, ứng dụng bỏ qua bước seed ADMIN.
 
----
+Dừng container nhưng giữ dữ liệu database:
 
-## Cấu hình môi trường
-
-
-| Biến                         | Mô tả                                                | Mặc định                                     |
-| ---------------------------- | ---------------------------------------------------- | -------------------------------------------- |
-| `SPRING_DATASOURCE_URL`      | JDBC URL kết nối MySQL                               | `jdbc:mysql://localhost:3306/booking_db?...` |
-| `spring.datasource.username` | Username MySQL                                       | `root`                                       |
-| `spring.datasource.password` | Password MySQL                                       | —                                            |
-| `JWT_SECRET`                 | Chuỗi bí mật ký JWT (≥32 ký tự)                      | fallback dev (không dùng production)         |
-| `APP_ADMIN_EMAIL`            | Email tài khoản ADMIN được seed                      | —                                            |
-| `APP_ADMIN_PASSWORD`         | Mật khẩu tài khoản ADMIN (≥8 ký tự, có chữ hoa + số) | —                                            |
-
-
----
-
-## API Endpoints
-
-
-### Auth
-
-| Method | Endpoint             | Quyền  | Mô tả                      | Request Body                                   | Response                           |
-| ------ | -------------------- | ------ | -------------------------- | ---------------------------------------------- | ---------------------------------- |
-| POST   | `/api/auth/register` | Public | Đăng ký tài khoản CUSTOMER | `email`, `password`, `fullName`, `phoneNumber` | `201 UserDTO`                      |
-| POST   | `/api/auth/login`    | Public | Đăng nhập, nhận JWT        | `email`, `password`                            | `accessToken`, `tokenType`, `role` |
-
-### Users
-
-| Method | Endpoint                 | Quyền | Mô tả             | Request Body                 | Response         |
-| ------ | ------------------------ | ----- | ----------------- | ---------------------------- | ---------------- |
-| GET    | `/api/users/me`          | 🔒 ( có thông tin trên header)    | Xem hồ sơ cá nhân | —                            | `UserDTO`        |
-| PUT    | `/api/users/me/password` | 🔒    | Đổi mật khẩu      | `oldPassword`, `newPassword` | `204 No Content` |
-
-### Rooms
-
-| Method | Endpoint          | Quyền  | Mô tả                                      | Request Body / Params                                            | Response             |
-| ------ | ----------------- | ------ | ------------------------------------------ | ---------------------------------------------------------------- | -------------------- |
-| GET    | `/api/rooms`      | Public | Danh sách phòng ACTIVE                     | Query: `roomType`, `capacity`, `minPrice`, `maxPrice`            | `List<RoomResponse>` |
-| GET    | `/api/rooms/{id}` | Public | Chi tiết một phòng ACTIVE                  | —                                                                | `RoomResponse`       |
-| POST   | `/api/rooms`      | 🔒 🛡️ ( chỉ admin )  | Tạo phòng mới                              | `roomNumber`, `roomType`, `capacity`, `basePrice`, `description` | `201 RoomResponse`   |
-| PUT    | `/api/rooms/{id}` | 🔒 🛡️  | Cập nhật thông tin phòng                   | `roomNumber`, `roomType`, `capacity`, `basePrice`, `description` | `RoomResponse`       |
-| DELETE | `/api/rooms/{id}` | 🔒 🛡️  | Ngừng kinh doanh phòng (ACTIVE → INACTIVE) | —                                                                | `204 No Content`     |
-
-### Bookings
-
-| Method | Endpoint                      | Quyền       | Mô tả                                 | Request Body / Params                                 | Response                |
-| ------ | ----------------------------- | ----------- | ------------------------------------- | ----------------------------------------------------- | ----------------------- |
-| POST   | `/api/bookings`               | 🔒 CUSTOMER | Tạo đơn đặt phòng (userId lấy từ JWT) | `roomId`, `checkInDate`, `checkOutDate`, `totalGuest` | `BookingResponse`       |
-| GET    | `/api/bookings/my-bookings`   | 🔒          | Lịch sử đặt phòng của mình (từ JWT)   | —                                                     | `List<BookingResponse>` |
-| GET    | `/api/bookings/user/{userId}` | 🔒          | Lịch sử đặt phòng theo userId         | —                                                     | `List<BookingResponse>` |
-| GET    | `/api/bookings/{id}`          | 🔒          | Chi tiết 1 đơn đặt phòng              | —                                                     | `BookingResponse`       |
-| POST   | `/api/bookings/{id}/pay`      | 🔒 CUSTOMER/ADMIN (chủ booking) | Chỉ chủ booking được thanh toán (PENDING → PAID) | `cardNumber`, `paymentMethod` | `PaymentResponse`       |
-| DELETE | `/api/bookings/{id}/cancel`   | 🔒          | Hủy đơn (PENDING → CANCELLED)         | Query: `?userId=`                                     | `BookingResponse`       |
-
----
-
-## Luồng nghiệp vụ
-
-### Trạng thái đơn đặt phòng
-
-```
-          ┌─────────┐
-    tạo   │         │   thanh toán
-  ──────► │ PENDING │ ──────────────► PAID
-          │         │
-          │         │   hủy đơn
-          └─────────┘ ──────────────► CANCELLED
+```powershell
+docker compose down
 ```
 
-> Chỉ có thể thanh toán hoặc hủy khi đơn đang ở `PENDING`.
+Xóa cả volume và dữ liệu local (không thể khôi phục từ lệnh này):
 
-### Tính giá
-
-```
-total_price = basePrice × số_đêm
-số_đêm = checkOutDate - checkInDate  (ngày check-out không tính là đêm lưu trú)
+```powershell
+docker compose down -v
 ```
 
-### Chống đặt trùng
+Compose tạo database `booking_db`; Hibernate cập nhật schema khi ứng dụng khởi động. Không cần tạo database thủ công trong Workbench.
 
-Trước khi tạo booking mới, hệ thống kiểm tra xem phòng được yêu cầu có đêm nào đã được giữ trong khoảng ngày đó hay không. Hai booking `[12→14]` và `[14→16]` **không xung đột** (khoảng nửa mở).
+## 6. Giới hạn hiện tại và nội dung demo
+
+- Thanh toán là mô phỏng, không xác nhận giao dịch với bên thứ ba; trạng thái `SUCCESS` chỉ biểu thị luồng demo hoàn tất.
+- Chưa có hủy booking đã thanh toán và hoàn tiền. ADMIN chỉ hủy được booking đang ở trạng thái cho phép.
+- Booking `PENDING` giữ đêm cho tới khi được thanh toán hoặc hủy; phiên bản hiện tại chưa có thời hạn tự giải phóng booking chờ.
+- Danh sách phòng hiện lọc theo thuộc tính phòng, chưa có endpoint tra cứu phòng trống theo khoảng ngày.
+- Schema được quản lý bằng `ddl-auto=update` để thuận tiện cho MVP; hệ thống dài hạn nên dùng công cụ migration schema.
+- Kiểm thử tải trên Kaggle CPU là yêu cầu triển khai riêng; kết quả cần được ghi nhận sau khi nhóm chạy và xác nhận thực nghiệm.
+
+Các giới hạn này xác định rõ phạm vi bản MVP và là hướng phát triển tiếp theo, không thay đổi các yêu cầu kỹ thuật nền tảng của bài tập.

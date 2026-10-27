@@ -1,0 +1,545 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Hotel Booking API", "version": "1.0" },
+  "servers": [
+    { "url": "http://localhost:8080", "description": "Generated server url" }
+  ],
+  "security": [{ "bearerAuth": [] }],
+  "tags": [{ "name": "Users", "description": "Hồ sơ và mật khẩu người dùng" }],
+  "paths": {
+    "/api/users/me/password": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Đổi mật khẩu",
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": { "200": { "description": "OK" } },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/api/rooms/{id}": {
+      "get": {
+        "tags": ["room-controller"],
+        "operationId": "getRoom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/RoomResponse" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["room-controller"],
+        "operationId": "updateRoom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateRoomRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/RoomResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["room-controller"],
+        "operationId": "deactivateRoom",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "exclusiveMinimum": 0
+            }
+          }
+        ],
+        "responses": { "204": { "description": "No Content" } }
+      }
+    },
+    "/api/rooms": {
+      "get": {
+        "tags": ["room-controller"],
+        "operationId": "getRooms",
+        "parameters": [
+          {
+            "name": "roomType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["SINGLE", "DOUBLE", "SUITE"]
+            }
+          },
+          {
+            "name": "capacity",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "minimum": 1 }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0.01 }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "number", "minimum": 0.01 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/RoomResponse" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["room-controller"],
+        "operationId": "createRoom",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRoomRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/RoomResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "tags": ["booking-controller"],
+        "operationId": "createBooking",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBookingRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/BookingResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/{id}/pay": {
+      "post": {
+        "tags": ["booking-controller"],
+        "operationId": "payBooking",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PayBookingRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["auth-controller"],
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/UserResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["auth-controller"],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Xem hồ sơ của mình",
+        "operationId": "getMyProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/UserResponse" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearerAuth": [] }]
+      }
+    },
+    "/api/bookings/{id}": {
+      "get": {
+        "tags": ["booking-controller"],
+        "operationId": "getBookingById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/BookingResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["booking-controller"],
+        "operationId": "cancelBooking",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/BookingResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/user/{userId}": {
+      "get": {
+        "tags": ["booking-controller"],
+        "operationId": "getBookingsByUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/BookingResponse" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bookings/my-bookings": {
+      "get": {
+        "tags": ["booking-controller"],
+        "operationId": "getMyBookings",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/BookingResponse" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "oldPassword": { "type": "string", "minLength": 1 },
+          "newPassword": { "type": "string", "minLength": 1 }
+        },
+        "required": ["newPassword", "oldPassword"]
+      },
+      "UpdateRoomRequest": {
+        "type": "object",
+        "properties": {
+          "roomNumber": { "type": "string", "maxLength": 30, "minLength": 0 },
+          "roomType": {
+            "type": "string",
+            "enum": ["SINGLE", "DOUBLE", "SUITE"]
+          },
+          "capacity": { "type": "integer", "format": "int32", "minimum": 1 },
+          "basePrice": { "type": "number", "minimum": 0.01 },
+          "description": { "type": "string", "maxLength": 1000, "minLength": 0 }
+        },
+        "required": ["basePrice", "roomNumber", "roomType"]
+      },
+      "RoomResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "roomNumber": { "type": "string" },
+          "roomType": {
+            "type": "string",
+            "enum": ["SINGLE", "DOUBLE", "SUITE"]
+          },
+          "capacity": { "type": "integer", "format": "int32" },
+          "basePrice": { "type": "number" },
+          "description": { "type": "string" },
+          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] }
+        }
+      },
+      "CreateRoomRequest": {
+        "type": "object",
+        "properties": {
+          "roomNumber": { "type": "string", "maxLength": 30, "minLength": 0 },
+          "roomType": {
+            "type": "string",
+            "enum": ["SINGLE", "DOUBLE", "SUITE"]
+          },
+          "capacity": { "type": "integer", "format": "int32", "minimum": 1 },
+          "basePrice": { "type": "number", "minimum": 0.01 },
+          "description": { "type": "string", "maxLength": 1000, "minLength": 0 }
+        },
+        "required": ["basePrice", "roomNumber", "roomType"]
+      },
+      "CreateBookingRequest": {
+        "type": "object",
+        "properties": {
+          "roomId": { "type": "integer", "format": "int64" },
+          "checkInDate": { "type": "string", "format": "date" },
+          "checkOutDate": { "type": "string", "format": "date" },
+          "totalGuest": { "type": "integer", "format": "int32", "minimum": 1 },
+          "dateRangeValid": { "type": "boolean" }
+        },
+        "required": ["checkInDate", "checkOutDate", "roomId"]
+      },
+      "BookingResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "userId": { "type": "integer", "format": "int64" },
+          "roomId": { "type": "integer", "format": "int64" },
+          "checkInDate": { "type": "string", "format": "date" },
+          "checkOutDate": { "type": "string", "format": "date" },
+          "totalGuest": { "type": "integer", "format": "int32" },
+          "totalPrice": { "type": "number" },
+          "status": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PayBookingRequest": {
+        "type": "object",
+        "properties": {
+          "cardNumber": { "type": "string", "minLength": 1 },
+          "paymentMethod": { "type": "string", "minLength": 1 }
+        },
+        "required": ["cardNumber", "paymentMethod"]
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "bookingId": { "type": "integer", "format": "int64" },
+          "amount": { "type": "number" },
+          "paymentMethod": { "type": "string" },
+          "transactionRef": { "type": "string" },
+          "status": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "password": { "type": "string", "minLength": 1 },
+          "fullName": { "type": "string", "maxLength": 100, "minLength": 0 },
+          "phoneNumber": { "type": "string", "maxLength": 20, "minLength": 0 }
+        },
+        "required": ["email", "fullName", "password", "phoneNumber"]
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "format": "int64" },
+          "email": { "type": "string" },
+          "fullName": { "type": "string" },
+          "role": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "password": { "type": "string", "minLength": 1 }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "tokenType": { "type": "string" },
+          "role": { "type": "string" }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
