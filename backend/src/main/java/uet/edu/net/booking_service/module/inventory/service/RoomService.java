@@ -1,7 +1,5 @@
 package uet.edu.net.booking_service.module.inventory.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uet.edu.net.booking_service.module.inventory.domain.Room;
 import uet.edu.net.booking_service.module.inventory.domain.RoomStatus;
 import uet.edu.net.booking_service.module.inventory.domain.RoomType;
@@ -13,8 +11,6 @@ import uet.edu.net.booking_service.module.inventory.service.port.RoomUseCases;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Service
-@Transactional
 public class RoomService implements RoomUseCases {
 
     private final RoomRepository roomRepository;
@@ -23,7 +19,7 @@ public class RoomService implements RoomUseCases {
         this.roomRepository = roomRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Override
     public List<Room> getActiveRooms(
             RoomType roomType,
             Integer minCapacity,
@@ -40,7 +36,7 @@ public class RoomService implements RoomUseCases {
         return roomRepository.findActiveRooms(roomType, minCapacity, minPrice, maxPrice);
     }
 
-    @Transactional(readOnly = true)
+    @Override
     public Room getActiveRoomById(Long id) {
         Room room = findById(id);
         if (room.status() != RoomStatus.ACTIVE) {
@@ -49,6 +45,7 @@ public class RoomService implements RoomUseCases {
         return room;
     }
 
+    @Override
     public Room createRoom(Room requestedRoom) {
         if (roomRepository.existsByRoomNumber(requestedRoom.roomNumber())) {
             throw new RoomNumberAlreadyExistsException(requestedRoom.roomNumber());
@@ -66,6 +63,7 @@ public class RoomService implements RoomUseCases {
         return roomRepository.save(room);
     }
 
+    @Override
     public Room updateRoom(Long id, Room requestedRoom) {
         Room existingRoom = findById(id);
         if (roomRepository.existsByRoomNumberAndIdNot(requestedRoom.roomNumber(), id)) {
@@ -84,6 +82,7 @@ public class RoomService implements RoomUseCases {
         return roomRepository.save(updatedRoom);
     }
 
+    @Override
     public Room deactivateRoom(Long id) {
         return roomRepository.save(findById(id).deactivate());
     }
