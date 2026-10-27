@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.dto;
+package uet.edu.net.booking_service.module.reservation.api.dto;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;

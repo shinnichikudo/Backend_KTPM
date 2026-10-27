@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.persistence.entity;
+package uet.edu.net.booking_service.module.reservation.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
     @UniqueConstraint(name = "uk_payments_booking_id", columnNames = {"booking_id"})
 })
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Payment {
+public class PaymentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.persistence.entity;
+package uet.edu.net.booking_service.module.reservation.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class BookingNight {
+public class BookingNightEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

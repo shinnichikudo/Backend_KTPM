@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.persistence.entity;
+package uet.edu.net.booking_service.module.reservation.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Booking {
+public class BookingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,7 +49,7 @@ public class Booking {
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
-    private List<BookingDetail> bookingDetails = new ArrayList<>();
+    private List<BookingDetailEntity> bookingDetails = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

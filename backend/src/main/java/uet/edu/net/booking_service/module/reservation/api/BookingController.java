@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.controller;
+package uet.edu.net.booking_service.module.reservation.api;
 
 import java.util.List;
 
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import uet.edu.net.booking_service.module.reservation.dto.BookingResponse;
-import uet.edu.net.booking_service.module.reservation.dto.CreateBookingRequest;
-import uet.edu.net.booking_service.module.reservation.dto.PayBookingRequest;
-import uet.edu.net.booking_service.module.reservation.dto.PaymentResponse;
+import uet.edu.net.booking_service.module.reservation.api.dto.BookingResponse;
+import uet.edu.net.booking_service.module.reservation.api.dto.CreateBookingRequest;
+import uet.edu.net.booking_service.module.reservation.api.dto.PayBookingRequest;
+import uet.edu.net.booking_service.module.reservation.api.dto.PaymentResponse;
 import uet.edu.net.booking_service.module.reservation.domain.Booking;
 import uet.edu.net.booking_service.module.reservation.domain.Payment;
 import uet.edu.net.booking_service.module.reservation.service.port.BookingUseCases;

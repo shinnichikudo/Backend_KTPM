@@ -1,4 +1,4 @@
-package uet.edu.net.booking_service.module.reservation.persistence.entity;
+package uet.edu.net.booking_service.module.reservation.persistence;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "booking_details")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class BookingDetail {
+public class BookingDetailEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,7 +17,7 @@ public class BookingDetail {
     // JPA relationship to satisfy @OneToMany(mappedBy = "booking") in Booking
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", insertable = false, updatable = false)
-    private Booking booking;
+    private BookingEntity booking;
 
     @Column(name = "room_id", nullable = false)
     private Long roomId;

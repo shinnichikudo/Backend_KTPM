@@ -2,12 +2,11 @@ package uet.edu.net.booking_service.module.reservation.persistence;
 
 import org.springframework.stereotype.Component;
 import uet.edu.net.booking_service.module.reservation.domain.Booking;
-import uet.edu.net.booking_service.module.reservation.persistence.entity.BookingDetail;
 
 @Component
 public class BookingMapper {
-    public Booking toDomain(uet.edu.net.booking_service.module.reservation.persistence.entity.Booking entity) {
-        BookingDetail detail = entity.getBookingDetails().stream().findFirst().orElse(null);
+    public Booking toDomain(BookingEntity entity) {
+        BookingDetailEntity detail = entity.getBookingDetails().stream().findFirst().orElse(null);
         return new Booking(
                 entity.getId(), entity.getUserId(), entity.getCheckInDate(), entity.getCheckOutDate(),
                 entity.getTotalGuest(), entity.getTotalPrice(), entity.getStatus(), entity.getCreatedAt(),
@@ -15,8 +14,8 @@ public class BookingMapper {
                 detail == null ? null : detail.getPriceAtBooking());
     }
 
-    public uet.edu.net.booking_service.module.reservation.persistence.entity.Booking toEntity(Booking booking) {
-        return uet.edu.net.booking_service.module.reservation.persistence.entity.Booking.builder()
+    public BookingEntity toEntity(Booking booking) {
+        return BookingEntity.builder()
                 .id(booking.id())
                 .userId(booking.userId())
                 .checkInDate(booking.checkInDate())
