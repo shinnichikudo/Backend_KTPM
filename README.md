@@ -24,7 +24,7 @@ Phiên bản này tập trung vào ba nghiệp vụ: quản lý tài khoản, qu
 
 ## 2. API và bảo mật
 
-API tuân theo mô hình REST, dùng các method HTTP phù hợp (`GET`, `POST`, `PUT`, `DELETE`) và JSON request/response. Tài liệu tương tác được cung cấp bằng Swagger UI tại <http://localhost:8080/swagger-ui/index.html> khi ứng dụng đang chạy.
+API tuân theo mô hình REST, dùng các method HTTP phù hợp (`GET`, `POST`, `PUT`, `DELETE`) và JSON request/response. Tài liệu tương tác được cung cấp bằng Swagger UI tại <http://localhost:8080/swagger-ui/index.html> khi ứng dụng đang chạy. Bản đặc tả OpenAPI lưu tại [`docs/openapi.json`](docs/openapi.json), có thể import vào Swagger Editor hoặc Postman.
 
 | Method | Endpoint | Quyền | Mục đích |
 | --- | --- | --- | --- |
@@ -86,15 +86,30 @@ Luồng xử lý là **API → use case nghiệp vụ → port/contract → adap
 
 Framework sử dụng: **Spring Boot 4.1.1**, **Spring Security**, **Spring Data JPA/Hibernate**, **JJWT 0.12.6**, **springdoc OpenAPI 3.0.0**, **MySQL 8.0** và **Docker Compose**.
 
-## 5. Chạy ứng dụng
+## 5. Build và triển khai
 
-Cần Docker Desktop với Docker Engine đang chạy. Từ thư mục gốc repository, tạo file cấu hình local:
+Cần Java 21 để build bằng Maven Wrapper, hoặc Docker Desktop để build và chạy toàn bộ ứng dụng cùng MySQL.
+
+### Build ứng dụng
+
+Từ thư mục gốc repository:
+
+```powershell
+cd backend
+.\mvnw.cmd -DskipTests package
+```
+
+Lệnh tạo file JAR trong `backend/target/`. Dockerfile thực hiện quy trình tương tự trong giai đoạn build Maven, sau đó chép JAR sang image runtime chỉ có JRE 21.
+
+### Chạy bằng Docker Compose
+
+Tại thư mục gốc repository, tạo file cấu hình local:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Đổi giá trị mật khẩu MySQL và `JWT_SECRET` trong `.env`; không commit file này. `MYSQL_HOST_PORT` là cổng MySQL mở trên máy host và có thể đổi nếu bị trùng. Ứng dụng trong Docker luôn kết nối MySQL qua tên service và cổng nội bộ `3306`.
+Đổi giá trị mật khẩu MySQL và `JWT_SECRET` trong `.env`; không commit file này. `MYSQL_HOST_PORT` là cổng MySQL mở trên máy host và có thể đổi nếu bị trùng. Ứng dụng trong Docker kết nối MySQL qua tên service `mysql` và cổng nội bộ `3306`.
 
 Khởi động và xem trạng thái:
 
@@ -104,7 +119,7 @@ docker compose ps
 docker compose logs -f app
 ```
 
-Mở Swagger UI: <http://localhost:8080/swagger-ui/index.html>. Chọn **Authorize**, nhập `Bearer <accessToken>` sau khi đăng nhập để gọi API cần xác thực. Nếu muốn tự tạo ADMIN, điền cả `APP_ADMIN_EMAIL` và `APP_ADMIN_PASSWORD` trong `.env`; nếu để trống cả hai, ứng dụng bỏ qua bước seed ADMIN.
+Compose khởi động MySQL trước, chờ health check báo healthy rồi mới khởi động API. Database được lưu trong named volume nên dữ liệu còn lại sau `docker compose down`. Mở Swagger UI: <http://localhost:8080/swagger-ui/index.html>. Chọn **Authorize**, nhập `Bearer <accessToken>` sau khi đăng nhập để gọi API cần xác thực. Nếu muốn tự tạo ADMIN, điền cả `APP_ADMIN_EMAIL` và `APP_ADMIN_PASSWORD` trong `.env`; nếu để trống cả hai, ứng dụng bỏ qua bước seed ADMIN.
 
 Dừng container nhưng giữ dữ liệu database:
 
@@ -120,7 +135,28 @@ docker compose down -v
 
 Compose tạo database `booking_db`; Hibernate cập nhật schema khi ứng dụng khởi động. Không cần tạo database thủ công trong Workbench.
 
-## 6. Giới hạn hiện tại và nội dung demo
+## 6. Hướng dẫn tiếp tục phát triển
+
+Để làm việc trên Phase 2, nên bắt đầu từ các use case và interface hiện có thay vì truy cập repository của module khác trực tiếp:
+
+- `module/auth/contract/` cung cấp hợp đồng người dùng cho module khác.
+- `module/inventory/contract/` cung cấp thông tin phòng cho nghiệp vụ đặt phòng.
+- `module/reservation/service/port/` mô tả các cổng lưu booking, đêm giữ chỗ và payment.
+- Thêm API mới trong `api/`, quy tắc mới trong `domain/` hoặc `service/`, và thay đổi truy cập dữ liệu trong `persistence/`.
+- Khi thay đổi endpoint hoặc DTO, cập nhật mô tả OpenAPI và xuất lại `docs/openapi.json` để Postman/Swagger Editor dùng cùng đặc tả.
+
+Các module dùng chung `core/exception` để trả mã lỗi API thống nhất. Nếu thay đổi interface/contract, cần cập nhật các module phụ thuộc và đặc tả API tương ứng.
+
+## 7. Demo Phase 1
+
+Một kịch bản ngắn thể hiện các luồng chính:
+
+1. Khách chưa đăng nhập xem và lọc danh sách phòng.
+2. Đăng ký, đăng nhập, dùng JWT để xem hồ sơ và tạo booking.
+3. Tạo booking trùng cùng phòng/đêm để thấy hệ thống từ chối; thanh toán mô phỏng hoặc hủy booking đang `PENDING`.
+4. ADMIN đăng nhập để tạo/sửa/ngừng kinh doanh phòng và tra cứu booking.
+
+## 8. Giới hạn hiện tại
 
 - Thanh toán là mô phỏng, không xác nhận giao dịch với bên thứ ba; trạng thái `SUCCESS` chỉ biểu thị luồng demo hoàn tất.
 - Chưa có hủy booking đã thanh toán và hoàn tiền. ADMIN chỉ hủy được booking đang ở trạng thái cho phép.
