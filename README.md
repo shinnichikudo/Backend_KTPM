@@ -163,6 +163,6 @@ Một kịch bản ngắn thể hiện các luồng chính:
 - Booking `PENDING` giữ đêm cho tới khi được thanh toán hoặc hủy; phiên bản hiện tại chưa có thời hạn tự giải phóng booking chờ.
 - Danh sách phòng hiện lọc theo thuộc tính phòng, chưa có endpoint tra cứu phòng trống theo khoảng ngày.
 - Schema được quản lý bằng `ddl-auto=update` để thuận tiện cho MVP; hệ thống dài hạn nên dùng công cụ migration schema.
-- Kiểm thử tải trên Kaggle CPU là yêu cầu triển khai riêng; kết quả cần được ghi nhận sau khi nhóm chạy và xác nhận thực nghiệm.
+
 
 Các giới hạn này xác định rõ phạm vi bản MVP và là hướng phát triển tiếp theo, không thay đổi các yêu cầu kỹ thuật nền tảng của bài tập.
