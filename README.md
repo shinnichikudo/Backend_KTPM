@@ -21,7 +21,7 @@ Phiên bản này tập trung vào ba nghiệp vụ: quản lý tài khoản, qu
 3. Các đêm được giữ trong `booking_nights`. Ràng buộc duy nhất trên `(room_id, night_date)` ngăn hai booking cùng giữ một phòng/đêm, kể cả khi có request đồng thời. Hai khoảng liền kề `[12, 14)` và `[14, 16)` không trùng nhau.
 4. Thanh toán mô phỏng hợp lệ chuyển booking `PENDING` sang `PAID`. Hủy chuyển `PENDING` sang `CANCELLED` và giải phóng các đêm đã giữ. Booking đã thanh toán hiện chưa hỗ trợ hủy/hoàn tiền.
 5. API chi tiết booking kiểm tra chủ sở hữu; ADMIN được xem booking của mọi người. API thanh toán chỉ cho CUSTOMER thanh toán booking của chính họ.
-
+6. Thuật toán Luhn trong kiểm tra tính hợp lệ của thẻ ngân hàng
 ## 2. API và bảo mật
 
 API tuân theo mô hình REST, dùng các method HTTP phù hợp (`GET`, `POST`, `PUT`, `DELETE`) và JSON request/response. Tài liệu tương tác được cung cấp bằng Swagger UI tại <http://localhost:8080/swagger-ui/index.html> khi ứng dụng đang chạy. Bản đặc tả OpenAPI lưu tại [`docs/openapi.json`](docs/openapi.json), có thể import vào Swagger Editor hoặc Postman.
